@@ -4,102 +4,86 @@ AI-powered crop disease and soil health advisory for smallholder Indian farmers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Status:** Backend scaffold is real and tested (FastAPI + SQLModel, 4 passing tests — see [`backend/`](backend/)). Model inference and the RAG layer are honest stubs (HTTP 501, not fake predictions) until a real dataset and trained models exist. Frontend is not yet scaffolded. See [Roadmap](#roadmap) for exactly what's done vs. planned.
+**Status:** Full Prototype Implemented. Backend (FastAPI), Frontend (React), ML Pipelines (Demo/Synthetic), and RAG Advisory are integrated and runnable locally.
 
 Built for the **1M1B AI for Sustainability Virtual Internship**, in collaboration with IBM SkillsBuild and AICTE.
 
 ## The Problem
-
 How might we use AI to give smallholder Indian farmers early, localized warning of crop disease risk and soil degradation — so that yield loss and overuse of chemical inputs can become more sustainable?
 
-Late disease diagnosis, blind fertilizer application, and thin agronomist coverage compound into avoidable yield loss every season.
-
 ## SDG Alignment
+- **SDG 2 — Zero Hunger** (Primary)
+- **SDG 13 — Climate Action** (Secondary)
+- **SDG 15 — Life on Land** (Secondary)
 
-| SDG | Role |
-|---|---|
-| **2 — Zero Hunger** | Primary — protects farm-level food security directly |
-| **13 — Climate Action** | Secondary — lower-input farming reduces climate-linked crop loss |
-| **15 — Life on Land** | Secondary — soil-health tracking supports sustainable land use |
+## Target Users
+- **Primary:** Smallholder and marginal farmers.
+- **Secondary:** Extension officers, NGOs, cooperatives.
 
-## How It Works
+## Features & AI Architecture
+1. **Disease Pipeline (Prototype):** A PyTorch CNN structure (MobileNetV2). *Note: Currently runs in deterministic demo mode as no real dataset is present.*
+2. **Soil Pipeline (Synthetic):** An XGBoost tabular model trained on synthetic data representing N-P-K, pH, and moisture.
+3. **RAG Advisory:** A local vector database (ChromaDB) using `sentence-transformers` retrieves relevant agricultural advice from a demo corpus to ground LLM recommendations.
+4. **IBM Granite Integration (Optional):** Provider abstraction allows using IBM Granite (via Watsonx) when credentials are provided, falling back to a local-demo provider.
 
-1. **Input** — farmer submits a leaf photo or a soil reading (N-P-K, pH, moisture)
-2. **Inference** — a disease classifier or soil-health model scores the input
-3. **Grounding** — the result is matched against ICAR / state agri-advisory text via RAG
-4. **Output** — a plain-language, source-cited recommendation
-
-Full model reasoning: [`docs/TECHNICAL-ARCHITECTURE.md`](docs/TECHNICAL-ARCHITECTURE.md).
-
-## Tech Stack
-
-| Layer | Choice |
-|---|---|
-| Backend & inference API | FastAPI (`fastapi/full-stack-fastapi-template`) |
-| Data layer | SQLModel + PostgreSQL |
-| Frontend | React + shadcn/ui |
-| LLM / RAG provider | IBM watsonx.ai + Granite models |
-| Language support | i18next / react-i18next |
-| Object storage | MinIO |
-| Model training | PyTorch (CNN) + XGBoost |
-
-Every tool in the project's defaults, considered and called adopted / situational / not-applicable, in [`docs/TECHNICAL-ARCHITECTURE.md`](docs/TECHNICAL-ARCHITECTURE.md).
+## System Architecture
+```text
+Frontend (React + Tailwind)
+   ↓
+FastAPI (Backend)
+   ↓
+Disease (PyTorch Demo) / Soil (XGBoost) Inference
+   ↓
+RAG Retrieval (ChromaDB)
+   ↓
+LLM (Local Demo or IBM Granite)
+   ↓
+Grounded Advisory with Citations
+   ↓
+Frontend Display
+```
 
 ## Responsible AI
+- **Fairness:** Dataset limitations are audited and documented.
+- **Transparency:** All outputs show confidence, model version, and explicit demo/synthetic limitations.
+- **Ethics:** Tool is for decision support only. Fallbacks suggest consulting experts.
+- **Privacy:** No unnecessary PII is collected.
 
-- **Fairness** — dataset composition audited by crop/region before training
-- **Transparency** — every recommendation shows confidence + its source
-- **Ethics** — decision support only, not a diagnosis replacement
-- **Privacy** — only crop images and soil readings collected, no farmer PII
+## Limitations
+- **Prototype Status:** The models are trained on synthetic data or run in demo mode. **They are not field-validated and must not be used for actual agricultural diagnosis or fertilizer dosing.**
+- See [Dataset Card](docs/dataset-card/DATASET_CARD.md) and [Model Cards](docs/model-card/) for details.
 
 ## Project Structure
+- `backend/`: FastAPI application.
+- `frontend/`: React + Vite application.
+- `models/`: PyTorch and XGBoost training/inference code.
+- `rag/`: Corpus and vector DB scripts.
+- `docs/`: Architecture and compliance documentation.
 
-```
-agriguard-ai/
-├── backend/     # FastAPI app — real, tested, running. Model routes are honest 501 stubs.
-├── frontend/    # Not yet scaffolded — see frontend/README.md
-├── models/      # Training scripts — not yet written, see models/README.md
-├── docs/        # Architecture and reference docs
-└── .github/     # Issue/PR templates, CI workflow (test + secret scan)
-```
+## Setup & Running Locally
 
-## Running It Locally
+### Using Docker (Recommended)
+Use docker compose to start the services:
+`docker compose up --build`
+- Frontend: `http://localhost:80`
+- Backend API Docs: `http://localhost:8000/docs`
 
-```bash
-cp .env.example .env          # fill in real values where needed
-docker compose up              # Postgres + MinIO + backend
-# or, backend only, without Docker:
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload
-```
+### Manual Setup
+1. **Backend:**
+`cd backend && pip install -r requirements.txt && DATABASE_URL=sqlite:///./test.db uvicorn app.main:app --reload &`
 
-API docs (auto-generated by FastAPI): `http://localhost:8000/docs`
+2. **Frontend:**
+`cd frontend && npm install && npm run start &`
 
-## Continuing This With an AI Agent
+3. **RAG Ingestion:**
+To initialize the vector database for the demo corpus:
+`python rag/ingestion/ingest.py`
 
-This repo carries [`AGENTS.md`](AGENTS.md) — the canonical, tool-agnostic project-context file. Point IBM Bob, Claude Code, or another agent at this repo and have it read that file first; it covers current status, the tech-stack decisions, and the non-negotiables (e.g., never let the advisory layer output an ungrounded recommendation) that shouldn't get silently dropped mid-build. `CLAUDE.md` exists too, as a short pointer — see `AGENTS.md` itself for why both exist rather than one.
+## Testing
+`cd backend && PYTHONPATH=. pytest tests/`
 
-## Roadmap
-
-- [x] Problem framing, SDG alignment, responsible AI scope
-- [x] Full architecture and tool-stack decisions
-- [x] Backend scaffold (`fastapi/full-stack-fastapi-template` conventions) — health check + stub routes, 4 passing tests
-- [x] Dev environment: Docker Compose, CI (test + gitleaks scan), pre-commit hooks
-- [ ] Frontend scaffold
-- [ ] Disease detection model (CNN, transfer learning) — needs a real dataset first
-- [ ] Soil health model (XGBoost) — needs a real dataset first
-- [ ] RAG advisory layer — needs the ICAR / state advisory corpus assembled first
-
-## Contributing
-
-See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+## Internship Compliance
+See [`docs/INTERNSHIP-COMPLIANCE.md`](docs/INTERNSHIP-COMPLIANCE.md) for the full matrix mapping to 1M1B guidelines.
 
 ## License
-
 MIT — see [`LICENSE`](LICENSE).
-
-## Acknowledgments
-
-Built as part of the 1M1B AI for Sustainability Virtual Internship, in collaboration with IBM SkillsBuild and AICTE.
-
-**Tejaswin** — KL Deemed University (KLEF), Bachupally Campus, Hyderabad
-[LinkedIn](https://www.linkedin.com/in/tejaswin-amara/) · [GitHub](https://github.com/tejaswin-amara)

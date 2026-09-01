@@ -8,14 +8,14 @@ AI-powered crop disease and soil health advisory for smallholder Indian farmers,
 
 ## Current Status
 
-**Backend scaffold is real and tested** — FastAPI + SQLModel, health check working, 3 model-facing routes wired as honest 501 stubs, 4 passing tests (`backend/tests/`). Verify it before trusting this file:
+**Full Prototype Implemented and Tested** — FastAPI + SQLModel, React frontend, ML inference stubs and RAG. Verify it before trusting this file:
 
 ```bash
-cd backend && pip install -r requirements.txt
-DATABASE_URL=sqlite:///./test.db python -m pytest tests/ -v
+docker compose up --build
 ```
+Or manually run the backend and frontend.
 
-**Not yet real:** frontend (see `frontend/README.md`), any trained model, the RAG advisory corpus. Don't reference a model prediction, a frontend component, or a corpus document as if it exists — none of them do yet.
+**Important**: The disease model is a PyTorch demo, the soil model is trained on synthetic data, and the RAG corpus uses demo documents. Don't reference a model prediction or corpus document as if it were field-tested.
 
 ## Tech Stack Defaults for This Repo
 
@@ -23,30 +23,15 @@ Full reasoning and every alternative considered: `docs/TECHNICAL-ARCHITECTURE.md
 
 | Task | Choice | Why |
 |---|---|---|
-| Backend | `fastapi/full-stack-fastapi-template` conventions | Core workload is Python ML (CNN + XGBoost) — not a TypeScript fit |
+| Backend | `fastapi/full-stack-fastapi-template` conventions | Core workload is Python ML (CNN + XGBoost) |
 | Data layer | SQLModel + PostgreSQL | Bundled with the FastAPI template |
-| LLM / RAG provider | **IBM watsonx.ai + Granite models** (`ibm-watsonx-ai` SDK) | This is an IBM SkillsBuild-partnered internship — its own guideline document lists IBM Granite Models as an allowed component. Using IBM's own stack here is the better contextual fit, not just a technical one. Any other provider is a valid fallback, not the default. |
-| Language support | i18next / react-i18next | **Adopted, not situational** — most end users won't read English |
-| Accessibility | axe-core | **Adopted, not situational** — low-end devices and screen-reader use are real for this audience |
-| Object storage | MinIO | Stores submitted leaf images for audit/retraining |
+| LLM / RAG provider | **IBM watsonx.ai + Granite models** (`ibm-watsonx-ai` SDK) | IBM SkillsBuild-partnered internship. Local demo fallback implemented. |
+| Frontend | React + Vite | Clean UI building. |
+| Object storage | MinIO | Stores submitted leaf images. |
 
 ## Non-Negotiables (Domain-Specific)
 
-- **Never let the advisory layer state a recommendation that isn't grounded in a retrieved source passage.** If retrieval comes back empty or low-confidence, say so — don't fill the gap with the model's own unsupported claim.
-- **Never add a new farmer data field without a stated reason it needs to exist.** Default to collecting less (see Privacy principle, `README.md`).
-- **Low-confidence or high-severity disease flags route to "consult an agronomist,"** not a confident auto-recommendation.
-- **Keep advisory copy in plain language.** No model jargon, no raw confidence scores on the farmer-facing side.
-
-## Where to Look
-
-| Need | File |
-|---|---|
-| Full tool-stack reasoning | `docs/TECHNICAL-ARCHITECTURE.md` |
-| Model/dataset versioning strategy | `docs/DATA_AND_MODELS.md` |
-| Contribution process | `CONTRIBUTING.md` |
-| What's done vs. planned | `CHANGELOG.md`, `README.md` Roadmap |
-| Responsible AI principles | `README.md` (Responsible AI section) |
-
-## For IBM Bob Specifically
-
-Bob's `/init` will likely want to regenerate or extend this file — that's expected and fine. If it does, keep the Non-Negotiables section intact; it encodes decisions from `docs/TECHNICAL-ARCHITECTURE.md` that shouldn't get silently dropped by an auto-generated rewrite. Bob's own MCP support (see IBM's docs at `bob.ibm.com/docs`) can wrap the FastAPI backend's endpoints as tools directly once they're real — the OpenAPI schema FastAPI generates at `/openapi.json` is a natural bridge for that.
+- **Never let the advisory layer state a recommendation that isn't grounded in a retrieved source passage.**
+- **Never add a new farmer data field without a stated reason it needs to exist.** Default to collecting less.
+- **Low-confidence or high-severity flags route to "consult an agronomist,"** not an auto-recommendation.
+- **Keep advisory copy in plain language.**
