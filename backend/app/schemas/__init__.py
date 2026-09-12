@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
 
 
 class DiseaseAnalyzeResponse(BaseModel):
@@ -18,13 +17,13 @@ class SoilAdviseRequest(BaseModel):
     potassium: float = Field(..., ge=0, le=200)
     ph: float = Field(..., ge=0, le=14)
     moisture: float = Field(..., ge=0, le=100)
-    crop: Optional[str] = None
+    crop: str | None = None
 
 
 class SoilAdviseResponse(BaseModel):
     id: int
     predicted_category: str
-    confidence: Optional[float]
+    confidence: float | None
     model_version: str
     is_synthetic: bool
     limitation: str
@@ -46,5 +45,5 @@ class AdvisoryGenerateResponse(BaseModel):
     id: int
     recommendation: str
     provider: str
-    citations: List[Citation]
+    citations: list[Citation]
     limitation: str

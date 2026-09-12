@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add root to sys path so we can import rag module
 sys.path.append(
@@ -7,8 +7,9 @@ sys.path.append(
 )
 
 from rag.retrieval.retrieve import AdvisoryRetriever
-from app.services.llm import get_llm_provider
+
 from app.schemas import Citation
+from app.services.llm import get_llm_provider
 
 
 class RAGService:
@@ -24,7 +25,7 @@ class RAGService:
         context_text = ""
         for i, c in enumerate(raw_citations):
             citations.append(Citation(**c))
-            context_text += f"\nSource {i+1} ({c['title']}): {c['content']}\n"
+            context_text += f"\nSource {i + 1} ({c['title']}): {c['content']}\n"
 
         # Generate answer grounded in context
         response = self.llm.generate(context=context_text, query=query)

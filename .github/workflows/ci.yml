@@ -19,6 +19,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
+      - name: Lint and Format with Ruff
+        run: |
+          cd backend
+          ruff check .
+          ruff format --check .
       - name: Run Backend Tests
         run: |
           cd backend
@@ -36,10 +41,22 @@ jobs:
         run: |
           cd frontend
           npm install
+      - name: Lint and Format with Biome
+        run: |
+          cd frontend
+          npx biome ci .
       - name: Build Frontend
         run: |
           cd frontend
           npm run build
+      - name: Install Playwright Browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps chromium
+      - name: Run E2E Tests
+        run: |
+          cd frontend
+          npx playwright test
 
   security-scan:
     runs-on: ubuntu-latest
@@ -51,3 +68,10 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          severity: 'CRITICAL,HIGH'

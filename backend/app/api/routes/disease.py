@@ -1,7 +1,8 @@
 from fastapi import APIRouter, File, UploadFile
+
 from app.api.deps import SessionDep
-from app.schemas import DiseaseAnalyzeResponse
 from app.models import DiseaseAnalysis
+from app.schemas import DiseaseAnalyzeResponse
 from app.services.disease import analyze_disease_image
 
 router = APIRouter(prefix="/disease", tags=["disease"])

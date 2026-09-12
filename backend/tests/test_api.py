@@ -1,13 +1,14 @@
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
-from fastapi.testclient import TestClient
-from app.main import app
-from app.db.session import create_db_and_tables
-
 # Generate a small valid 1x1 black JPEG for testing
 import io
+
+from fastapi.testclient import TestClient
 from PIL import Image
+
+from app.db.session import create_db_and_tables
+from app.main import app
 
 img = Image.new("RGB", (1, 1), color="black")
 img_byte_arr = io.BytesIO()
