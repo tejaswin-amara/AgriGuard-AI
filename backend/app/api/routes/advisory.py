@@ -1,8 +1,10 @@
 import json
+
 from fastapi import APIRouter, HTTPException
+
 from app.api.deps import SessionDep
-from app.schemas import AdvisoryGenerateRequest, AdvisoryGenerateResponse
 from app.models import AdvisoryRecord, DiseaseAnalysis, SoilReading
+from app.schemas import AdvisoryGenerateRequest, AdvisoryGenerateResponse
 from app.services.rag import RAGService
 
 router = APIRouter(prefix="/advisory", tags=["advisory"])

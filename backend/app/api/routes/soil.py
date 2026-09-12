@@ -1,7 +1,8 @@
 from fastapi import APIRouter
+
 from app.api.deps import SessionDep
-from app.schemas import SoilAdviseRequest, SoilAdviseResponse
 from app.models import SoilReading
+from app.schemas import SoilAdviseRequest, SoilAdviseResponse
 from app.services.soil import advise_soil_readings
 
 router = APIRouter(prefix="/soil", tags=["soil"])

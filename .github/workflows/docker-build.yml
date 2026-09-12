@@ -1,0 +1,22 @@
+name: Docker Build & Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker images
+        run: docker compose build
+      - name: Run Trivy vulnerability scanner on backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'agriguard-backend:latest'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true

@@ -1,11 +1,12 @@
-import sys
 import os
+import sys
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 )
 
 from models.soil.inference import SoilInference
+
 from app.schemas import SoilAdviseRequest
 
 soil_inference = SoilInference()
