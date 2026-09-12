@@ -44,9 +44,7 @@ jobs:
       - name: Lint and Format with Biome
         run: |
           cd frontend
-          npm run lint
-          npx biome format .
-          git diff --exit-code
+          npx biome ci .
       - name: Build Frontend
         run: |
           cd frontend
