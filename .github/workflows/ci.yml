@@ -40,12 +40,12 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
-          npm ci
+          npm install
       - name: Lint and Format with Biome
         run: |
           cd frontend
           npm run lint
-          npx biome format --write .
+          npx biome format .
           git diff --exit-code
       - name: Build Frontend
         run: |

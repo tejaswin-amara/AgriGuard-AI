@@ -16,7 +16,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on backend
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'agriguard-backend:latest'
+          image-ref: 'app-backend:latest'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
