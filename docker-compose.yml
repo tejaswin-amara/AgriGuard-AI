@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: agriguard
       POSTGRES_PASSWORD: agriguard_local_dev

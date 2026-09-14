@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, File, UploadFile
 
 from app.api.deps import SessionDep
@@ -10,7 +12,7 @@ router = APIRouter(prefix="/disease", tags=["disease"])
 
 @router.post("/analyze", response_model=DiseaseAnalyzeResponse)
 async def analyze_disease(
-    crop: str, session: SessionDep, image: UploadFile = File(...)
+    crop: str, session: SessionDep, image: Annotated[UploadFile, File(...)]
 ):
     """
     Analyze a crop leaf image for disease.
