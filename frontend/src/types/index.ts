@@ -74,7 +74,7 @@ export interface ClimateData {
   dry_spell_days?: number;
   gdd_cumulative?: number;
   et0_cumulative?: number;
-  anomalies: Record<string, number>;
+  anomalies?: Record<string, number>;
   provenance: Provenance;
 }
 
@@ -123,7 +123,15 @@ export interface NewsData {
 
 export interface RiskSignal {
   name: string;
-  level: "low" | "moderate" | "elevated" | "severe" | "none" | "mild" | "high";
+  level:
+    | "low"
+    | "moderate"
+    | "elevated"
+    | "severe"
+    | "none"
+    | "mild"
+    | "high"
+    | "insufficient_data";
   score: number;
   explanation: string;
 }
@@ -187,6 +195,8 @@ export interface Farm {
 export interface FarmCreateInput {
   name: string;
   location_query: string;
+  latitude?: number;
+  longitude?: number;
   primary_crop: string;
   plot_identifier?: string;
 }
@@ -194,8 +204,8 @@ export interface FarmCreateInput {
 export interface FarmContextResponse {
   farm: Farm;
   location: GeocodedLocation;
-  weather: WeatherData;
-  climate: ClimateData;
+  weather?: WeatherData;
+  climate?: ClimateData;
   air_quality?: AirQualityData;
   elevation?: ElevationData;
   biodiversity?: BiodiversityData;
@@ -209,7 +219,7 @@ export interface DiseaseAnalyzeResponse {
   id: number;
   crop: string;
   predicted_class: string;
-  confidence: number;
+  confidence?: number;
   model_version: string;
   is_demo: boolean;
   limitation: string;

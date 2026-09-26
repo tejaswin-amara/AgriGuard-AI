@@ -1,6 +1,6 @@
 # AgriGuard AI — Context-Aware Agricultural Intelligence Platform
 
-[![Backend Test Suite](https://github.com/tejaswin-amara/AgriGuard-AI/actions/workflows/backend.yml/badge.svg)](https://github.com/tejaswin-amara/AgriGuard-AI/actions)
+[![Backend Test Suite](https://github.com/tejaswin-amara/AgriGuard-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/tejaswin-amara/AgriGuard-AI/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![React 19](https://img.shields.io/badge/React-19.0-sky.svg)](https://react.dev/)
@@ -19,7 +19,7 @@ AgriGuard AI is a context-aware agricultural decision-support platform designed 
 | OpenAQ | Environmental Air Quality (PM2.5, PM10) | Optional | None | 1 hour | OpenAQ Community |
 | Open Topo Data | Terrain Elevation & Relief | Optional | None | 7 days | ETOPO1 Global Relief Model |
 | GBIF | Regional Biodiversity & Species Occurrences | Optional | None | 24 hours | Global Biodiversity Information Facility |
-| Agri News | Outbreak & Extension News Bulletins | Optional | None | 30 minutes | Curated Agricultural Extension Feeds |
+| Agri News | Curated Agricultural Advisory & Extension Bulletins | Optional | None | 30 minutes | Curated Extension Feeds |
 
 ---
 
@@ -34,25 +34,35 @@ AgriGuard AI is a context-aware agricultural decision-support platform designed 
 ### Local Development Setup
 
 1. Clone the repository:
+   ```bash
    git clone https://github.com/tejaswin-amara/AgriGuard-AI.git
    cd AgriGuard-AI
+   ```
 
 2. Backend Setup:
+   ```bash
    python3 -m venv .venv
    source .venv/bin/activate
    pip install -r backend/requirements.txt
-   PYTHONPATH=backend pytest
-   PYTHONPATH=backend uvicorn app.main:app --reload --port 8000
+   cd backend
+   pytest tests/ -v
+   uvicorn app.main:app --reload --port 8000
+   ```
 
 3. Frontend Setup:
+   ```bash
    cd frontend
    npm ci
-   npm run lint
+   npx biome ci .
    npm run build
+   npx playwright test
+   ```
 
 ### Running with Docker Compose
 
+```bash
 docker compose up --build -d
+```
 
 Access the application at:
 * Frontend UI: http://localhost/
@@ -63,14 +73,15 @@ Access the application at:
 
 ## REST API Surface Summary
 
-* GET /api/v1/health — System and provider health status
-* POST /api/v1/farms — Create and geocode a farm plot
-* GET /api/v1/farms/{farm_id}/context — Retrieve aggregated farm context
-* POST /api/v1/disease/analyze — Leaf image disease CNN classification
-* POST /api/v1/soil/advise — NPK & pH soil health classification
-* POST /api/v1/advisory/generate — Generate grounded RAG advisory
-* GET /api/v1/advisories — List historical advisory audit trail
-* GET /api/v1/providers/health — Provider capability health diagnostics
+* `GET /api/v1/health` — System and provider health status
+* `POST /api/v1/farms` — Create and geocode a farm plot
+* `GET /api/v1/farms/{farm_id}/context` — Retrieve aggregated farm context
+* `POST /api/v1/disease/analyze` — Leaf image disease CNN classification
+* `POST /api/v1/soil/advise` — NPK & pH soil health classification
+* `POST /api/v1/advisory/generate` — Generate grounded RAG advisory
+* `GET /api/v1/advisories` — List historical advisory audit trail
+* `GET /api/v1/advisories/{id}` — Get specific advisory details
+* `GET /api/v1/providers` — Provider capability health diagnostics
 
 ---
 
@@ -78,4 +89,4 @@ Access the application at:
 
 1. Zero Hallucination Grounding: Advisory recommendations are strictly grounded in retrieved extension documents.
 2. Explicit Provenance: Data points carry provenance badges distinguishing OBSERVED, WEATHER_MODEL, HISTORICAL_CLIMATE, ML_PREDICTION, and SYNTHETIC origins.
-3. Qualitative Risk Signals: Risk engine outputs qualitative pressure levels (low, moderate, elevated, severe) with plain-language meteorological explanations.
+3. Qualitative Risk Signals: Risk engine outputs qualitative pressure levels (low, moderate, elevated, severe, insufficient_data) with plain-language meteorological explanations.

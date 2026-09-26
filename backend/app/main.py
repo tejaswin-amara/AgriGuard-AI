@@ -34,12 +34,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Enable CORS for frontend Vite application
+# Configure CORS restricted to configured allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

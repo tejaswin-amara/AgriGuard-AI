@@ -103,7 +103,7 @@ class DiseaseAnalysis(SQLModel, table=True):
     crop: str
     image_path: str
     predicted_class: str
-    confidence: float
+    confidence: float | None = Field(default=None, sa_column_kwargs={"nullable": True})
     model_version: str
     is_demo: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -119,7 +119,7 @@ class SoilReading(SQLModel, table=True):
     moisture: float
     crop: str | None = None
     predicted_category: str
-    confidence: float | None = None
+    confidence: float | None = Field(default=None, sa_column_kwargs={"nullable": True})
     model_version: str
     is_synthetic: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
