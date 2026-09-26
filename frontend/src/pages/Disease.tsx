@@ -1,141 +1,173 @@
-import { useState } from "react";
-import { analyzeDisease, generateAdvisory } from "../services/api";
+import { useEffect, useState } from "react";
+import { CitationList } from "../components/CitationList";
+import { RiskCard } from "../components/RiskCard";
+import { diseaseService, farmService } from "../services/api";
+import type { DiseaseAnalyzeResponse, Farm } from "../types";
 
-export default function Disease() {
-	const [crop, setCrop] = useState("tomato");
-	const [file, setFile] = useState<File | null>(null);
-	const [loading, setLoading] = useState(false);
-	const [result, setResult] = useState<any>(null);
-	const [advisory, setAdvisory] = useState<any>(null);
-	const [error, setError] = useState("");
+export const Disease: React.FC = () => {
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [selectedFarmId, setSelectedFarmId] = useState<number | undefined>(undefined);
+  const [crop, setCrop] = useState<string>("Tomato");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!file) return setError("Please upload an image.");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<DiseaseAnalyzeResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-		setLoading(true);
-		setError("");
-		setResult(null);
-		setAdvisory(null);
+  useEffect(() => {
+    farmService.listFarms().then((list) => {
+      setFarms(list);
+      if (list.length > 0) setSelectedFarmId(list[0].id);
+    });
+  }, []);
 
-		try {
-			const analysis = await analyzeDisease(crop, file);
-			setResult(analysis);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
-			const adv = await generateAdvisory("disease", analysis.id);
-			setAdvisory(adv);
-		} catch (err: any) {
-			setError(
-				err.response?.data?.detail || "An error occurred during analysis.",
-			);
-		} finally {
-			setLoading(false);
-		}
-	};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      setError("Please select a leaf image file to upload.");
+      return;
+    }
 
-	return (
-		<div className="max-w-2xl mx-auto space-y-8">
-			<div>
-				<h1 className="text-3xl font-bold text-gray-900">Disease Analysis</h1>
-				<p className="text-gray-600 mt-2">
-					Upload a leaf image to get an AI-powered risk assessment.
-				</p>
-			</div>
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await diseaseService.analyzeDisease(selectedFile, crop, selectedFarmId);
+      setResult(res);
+    } catch (err: any) {
+      setError("Failed to analyze crop leaf image.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-			<form
-				onSubmit={handleSubmit}
-				className="space-y-4 bg-white p-6 shadow rounded-lg border border-gray-200"
-			>
-				<div>
-					<label className="block text-sm font-medium text-gray-700">
-						Crop
-					</label>
-					<select
-						value={crop}
-						onChange={(e) => setCrop(e.target.value)}
-						className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
-					>
-						<option value="tomato">Tomato</option>
-						<option value="potato">Potato</option>
-						<option value="wheat">Wheat</option>
-					</select>
-				</div>
-				<div>
-					<label className="block text-sm font-medium text-gray-700">
-						Leaf Image
-					</label>
-					<input
-						type="file"
-						accept="image/*"
-						onChange={(e) => setFile(e.target.files?.[0] || null)}
-						className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-					/>
-				</div>
-				<button
-					type="submit"
-					disabled={loading}
-					className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
-				>
-					{loading ? "Analyzing..." : "Analyze Image"}
-				</button>
-			</form>
+  return (
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h1 className="text-2xl font-bold text-gray-900">Crop Leaf Disease Inference</h1>
+        <p className="text-xs text-gray-600 mt-1">
+          Upload a crop leaf image for PyTorch CNN disease classification, environmental fungal pressure assessment,
+          and grounded RAG treatment advisory.
+        </p>
 
-			{error && (
-				<div className="p-4 bg-red-50 text-red-700 rounded border border-red-200">
-					{error}
-				</div>
-			)}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {farms.length > 0 && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                  Associate Farm Plot (Optional)
+                </label>
+                <select
+                  value={selectedFarmId || ""}
+                  onChange={(e) => setSelectedFarmId(e.target.value ? Number(e.target.value) : undefined)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                >
+                  <option value="">-- Standalone / No Farm --</option>
+                  {farms.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name} ({f.primary_crop})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-			{result && (
-				<div className="space-y-4">
-					<div className="bg-white p-6 shadow rounded-lg border border-gray-200">
-						<h2 className="text-xl font-bold mb-4">Analysis Result</h2>
-						<div className="grid grid-cols-2 gap-4 text-sm">
-							<div>
-								<span className="text-gray-500">Predicted Class:</span>{" "}
-								<span className="font-semibold text-gray-900">
-									{result.predicted_class}
-								</span>
-							</div>
-							<div>
-								<span className="text-gray-500">Confidence:</span>{" "}
-								<span className="font-semibold text-gray-900">
-									{(result.confidence * 100).toFixed(1)}%
-								</span>
-							</div>
-						</div>
-						{result.is_demo && (
-							<div className="mt-4 p-3 bg-yellow-50 text-yellow-800 rounded text-xs border border-yellow-200">
-								<strong>Limitation:</strong> {result.limitation}
-							</div>
-						)}
-					</div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Crop Type *</label>
+              <input
+                type="text"
+                value={crop}
+                onChange={(e) => setCrop(e.target.value)}
+                placeholder="e.g. Tomato, Cotton, Rice"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+          </div>
 
-					{advisory && (
-						<div className="bg-white p-6 shadow rounded-lg border border-gray-200">
-							<h2 className="text-xl font-bold mb-4">
-								Advisory Recommendation
-							</h2>
-							<p className="text-gray-800">{advisory.recommendation}</p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Leaf Image File *</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              />
+              {previewUrl ? (
+                <div className="flex flex-col items-center gap-2">
+                  <img src={previewUrl} alt="Leaf Preview" className="h-32 object-contain rounded-lg shadow-sm" />
+                  <span className="text-xs text-gray-600 font-semibold">{selectedFile?.name}</span>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <div className="text-3xl">🍃</div>
+                  <div className="text-sm font-semibold text-gray-700">Click or drag crop leaf photo here</div>
+                  <div className="text-xs text-gray-400">Supports JPEG, PNG up to 10MB</div>
+                </div>
+              )}
+            </div>
+          </div>
 
-							{advisory.citations && advisory.citations.length > 0 && (
-								<div className="mt-6 border-t pt-4">
-									<h3 className="text-sm font-bold text-gray-500 mb-2">
-										Sources:
-									</h3>
-									<ul className="space-y-2 text-sm text-gray-600">
-										{advisory.citations.map((c: any, i: number) => (
-											<li key={i} className="bg-gray-50 p-2 rounded">
-												<strong>{c.title}</strong> ({c.organization})
-											</li>
-										))}
-									</ul>
-								</div>
-							)}
-						</div>
-					)}
-				</div>
-			)}
-		</div>
-	);
-}
+          <button
+            type="submit"
+            disabled={isLoading || !selectedFile}
+            className="px-6 py-2.5 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-800 shadow-sm disabled:opacity-50"
+          >
+            {isLoading ? "Running Disease Inference..." : "Analyze Crop Disease"}
+          </button>
+        </form>
+      </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-semibold">
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <div className="flex justify-between items-start border-b pb-3">
+              <div>
+                <div className="text-xs uppercase font-bold text-gray-400">Predicted Disease / Health Status</div>
+                <h2 className="text-2xl font-black text-emerald-900 mt-1">{result.predicted_class}</h2>
+              </div>
+              <div className="text-right">
+                <span className="bg-blue-100 text-blue-900 text-xs font-bold px-2.5 py-1 rounded">
+                  DEMO MODEL
+                </span>
+                <div className="text-[11px] text-gray-500 mt-1">
+                  Confidence: {(result.confidence * 100).toFixed(0)}%
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-amber-800 bg-amber-50 p-3 rounded-lg border border-amber-200">
+              ⚠️ {result.limitation}
+            </p>
+
+            <div className="text-xs text-gray-500 font-mono flex gap-4">
+              <span>Model: {result.model_provenance.model_name}</span>
+              <span>Version: {result.model_provenance.model_version}</span>
+            </div>
+          </div>
+
+          {result.risk_context && <RiskCard riskContext={result.risk_context} />}
+
+          <CitationList citations={result.citations} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Disease;

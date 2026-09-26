@@ -1,22 +1,32 @@
-class LLMProvider:
+import logging
+from abc import ABC, abstractmethod
+
+logger = logging.getLogger("agriguard.services.llm")
+
+
+class LLMProvider(ABC):
+    @abstractmethod
     def generate(self, context: str, query: str) -> dict:
-        raise NotImplementedError
+        pass
 
 
 class DemoProvider(LLMProvider):
     def generate(self, context: str, query: str) -> dict:
-        """
-        A local, deterministic mock provider.
-        Does not invent advice; only synthesizes the provided context.
+        """A local deterministic mock provider.
+
+        Synthesizes provided evidence without inventing facts.
         """
         if not context.strip():
             return {
-                "recommendation": "Insufficient authoritative advisory evidence was retrieved. Please consult a qualified agricultural expert.",
+                "recommendation": "Insufficient authoritative advisory evidence was retrieved. Please consult a qualified agricultural expert before applying chemical or cultural treatments.",
                 "provider": "local-demo",
             }
 
-        # Mock synthesis
-        recommendation = f"Based on the guidelines: {context[:100]}... Please refer to the specific sources below for complete details."
+        recommendation = (
+            f"Advisory grounded in retrieved evidence:\n\n{context.strip()[:350]}\n\n"
+            "Action Plan: Monitor fields closely, ensure adequate drainage during wet periods, "
+            "and consult a local agricultural extension officer for field validation."
+        )
 
         return {"recommendation": recommendation, "provider": "local-demo"}
 
@@ -27,9 +37,22 @@ class GraniteProvider(LLMProvider):
         self.project_id = project_id
         self.url = url
         self.model_id = model_id
+        self._model = None
 
-        # Initialize ibm_watsonx_ai client here when credentials are provided
-        # e.g., self.model = Model(...)
+        try:
+            from ibm_watsonx_ai import Credentials
+            from ibm_watsonx_ai.foundation_models import ModelInference
+
+            creds = Credentials(url=self.url, api_key=self.api_key)
+            self._model = ModelInference(
+                model_id=self.model_id,
+                credentials=creds,
+                project_id=self.project_id,
+            )
+            logger.info(f"Initialized IBM WatsonX Granite model: {self.model_id}")
+        except Exception as e:
+            logger.warning(f"Could not initialize IBM WatsonX client ({str(e)}). Will fall back to DemoProvider.")
+            self._model = None
 
     def generate(self, context: str, query: str) -> dict:
         if not context.strip():
@@ -38,13 +61,35 @@ class GraniteProvider(LLMProvider):
                 "provider": "ibm-granite",
             }
 
-        # This would call the actual IBM Granite API
-        # For safety, if credentials fail or it's just a placeholder, we could fall back,
-        # but here we'll assume it's correctly configured if this class is used.
-        return {
-            "recommendation": f"[IBM Granite Simulated Response] Grounded on: {context[:50]}...",
-            "provider": "ibm-granite",
-        }
+        if self._model is None:
+            # Safe fallback if credentials or initialization failed
+            demo = DemoProvider()
+            res = demo.generate(context, query)
+            res["provider"] = "ibm-granite (local fallback)"
+            return res
+
+        prompt = (
+            f"System: You are an expert agricultural advisor for smallholder farmers. "
+            f"Synthesize the following retrieved evidence to answer the farmer query. "
+            f"Do not invent facts not present in the evidence.\n\n"
+            f"Retrieved Evidence:\n{context}\n\n"
+            f"Farmer Query: {query}\n\n"
+            f"Grounded Advisory:"
+        )
+
+        try:
+            params = {"max_new_tokens": 300, "temperature": 0.2}
+            output = self._model.generate_text(prompt=prompt, params=params)
+            return {
+                "recommendation": output.strip(),
+                "provider": "ibm-granite",
+            }
+        except Exception as e:
+            logger.error(f"Error calling IBM Granite API: {str(e)}")
+            demo = DemoProvider()
+            res = demo.generate(context, query)
+            res["provider"] = "ibm-granite (error fallback)"
+            return res
 
 
 def get_llm_provider() -> LLMProvider:
@@ -55,6 +100,6 @@ def get_llm_provider() -> LLMProvider:
             api_key=settings.watsonx_api_key,
             project_id=settings.watsonx_project_id,
             url=settings.watsonx_url,
-            model_id=settings.granite_model_id,
+            model_id=settings.granite_model_id or "ibm/granite-13b-instruct-v2",
         )
     return DemoProvider()

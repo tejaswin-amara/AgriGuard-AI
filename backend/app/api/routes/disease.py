@@ -1,31 +1,76 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlmodel import Session
 
-from app.api.deps import SessionDep
-from app.models import DiseaseAnalysis
+from app.api.deps import get_session
+from app.models import DiseaseAnalysis, Farm
 from app.schemas import DiseaseAnalyzeResponse
 from app.services.disease import analyze_disease_image
+from app.services.farm_context import farm_context_service
 
-router = APIRouter(prefix="/disease", tags=["disease"])
+router = APIRouter(prefix="/disease", tags=["Disease"])
 
 
-@router.post("/analyze", response_model=DiseaseAnalyzeResponse)
+@router.post(
+    "/analyze",
+    response_model=DiseaseAnalyzeResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Analyze Leaf Image for Crop Disease with Environmental Context",
+)
 async def analyze_disease(
-    crop: str, session: SessionDep, image: UploadFile = File(...)
+    file: UploadFile = File(None),
+    image: UploadFile = File(None),
+    crop: str = Form("General"),
+    farm_id: int | None = Form(None),
+    session: Session = Depends(get_session),
 ):
-    """
-    Analyze a crop leaf image for disease.
-    """
-    image_bytes = await image.read()
-    result = analyze_disease_image(image_bytes)
+    upload_file = file or image
+    if not upload_file:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing image file. Please upload an image file under parameter 'file' or 'image'.",
+        )
 
-    # Save to db
+    if not upload_file.content_type or not upload_file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file format. Please upload an image file (e.g. JPEG, PNG).",
+        )
+
+    # Read image file bytes with 10MB upload limit
+    image_bytes = await upload_file.read()
+    if len(image_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size exceeds maximum 10MB limit.")
+
+    # 1. Fetch farm context if farm_id provided
+    risk_ctx = None
+    weather_summary = None
+    if farm_id:
+        farm = session.get(Farm, farm_id)
+        if farm:
+            fctx = await farm_context_service.get_farm_context(session, farm)
+            risk_ctx = fctx.risk_context
+            weather_summary = f"Temp: {fctx.weather.temperature_c}°C, Humidity: {fctx.weather.humidity_pct}%, Rainfall: {fctx.weather.rainfall_mm}mm"
+
+    # 2. Perform ML disease analysis
+    try:
+        analysis_result = analyze_disease_image(
+            image_bytes=image_bytes,
+            crop=crop,
+            risk_context=risk_ctx,
+            weather_summary=weather_summary,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # 3. Persist analysis record
     record = DiseaseAnalysis(
+        farm_id=farm_id,
         crop=crop,
-        image_path=image.filename,
-        predicted_class=result["class"],
-        confidence=result["confidence"],
-        model_version=result["version"],
-        is_demo=result["is_demo"],
+        image_path=upload_file.filename or "uploaded_leaf.jpg",
+        predicted_class=analysis_result["predicted_class"],
+        confidence=analysis_result["confidence"],
+        model_version=analysis_result["model_version"],
+        is_demo=analysis_result["is_demo"],
     )
     session.add(record)
     session.commit()
@@ -33,10 +78,15 @@ async def analyze_disease(
 
     return DiseaseAnalyzeResponse(
         id=record.id,
-        crop=record.crop,
-        predicted_class=record.predicted_class,
-        confidence=record.confidence,
-        model_version=record.model_version,
-        is_demo=record.is_demo,
-        limitation=result["limitation"],
+        crop=crop,
+        predicted_class=analysis_result["predicted_class"],
+        confidence=analysis_result["confidence"],
+        model_version=analysis_result["model_version"],
+        is_demo=analysis_result["is_demo"],
+        limitation=analysis_result["limitation"],
+        farm_id=farm_id,
+        risk_context=analysis_result["risk_context"],
+        weather_summary=weather_summary,
+        citations=analysis_result["citations"],
+        model_provenance=analysis_result["model_provenance"],
     )

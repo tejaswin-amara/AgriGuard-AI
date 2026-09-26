@@ -1,89 +1,81 @@
-# AgriGuard AI
+# AgriGuard AI — Context-Aware Agricultural Intelligence Platform
 
-AI-powered crop disease and soil health advisory for smallholder Indian farmers.
+[![Backend Test Suite](https://github.com/tejaswin-amara/AgriGuard-AI/actions/workflows/backend.yml/badge.svg)](https://github.com/tejaswin-amara/AgriGuard-AI/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![React 19](https://img.shields.io/badge/React-19.0-sky.svg)](https://react.dev/)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+AgriGuard AI is a context-aware agricultural decision-support platform designed for smallholder farmers. It combines crop leaf disease computer vision, soil health classification, live weather metrics, 30-day historical agroclimate baselines, environmental air quality, terrain relief, biodiversity observations, and outbreak news with Retrieval-Augmented Generation (RAG) and IBM WatsonX Granite model reasoning.
 
-**Status:** Full Prototype Implemented. Backend (FastAPI), Frontend (React), ML Pipelines (Demo/Synthetic), and RAG Advisory are integrated and runnable locally.
+---
 
-Built for the **1M1B AI for Sustainability Virtual Internship**, in collaboration with IBM SkillsBuild and AICTE.
+## Integrated Public API Catalog Matrix
 
-## The Problem
-How might we use AI to give smallholder Indian farmers early, localized warning of crop disease risk and soil degradation — so that yield loss and overuse of chemical inputs can become more sustainable?
+| Provider | Capability | Priority | Auth | Cache Policy | Attribution / Source |
+|---|---|---|---|---|---|
+| Open-Meteo | Live weather, forecast, ET0, VPD, soil temp/moisture | Core (Required) | None | 30 minutes | Open-Meteo.com |
+| NASA POWER | 30-day historical agroclimate, rain, GDD | Core (Required) | None | 24 hours | NASA POWER Agroclimate Program |
+| Nominatim OSM | Forward & Reverse Geocoding | Core (Required) | None (User-Agent) | 7 days | OpenStreetMap Contributors |
+| OpenAQ | Environmental Air Quality (PM2.5, PM10) | Optional | None | 1 hour | OpenAQ Community |
+| Open Topo Data | Terrain Elevation & Relief | Optional | None | 7 days | ETOPO1 Global Relief Model |
+| GBIF | Regional Biodiversity & Species Occurrences | Optional | None | 24 hours | Global Biodiversity Information Facility |
+| Agri News | Outbreak & Extension News Bulletins | Optional | None | 30 minutes | Curated Agricultural Extension Feeds |
 
-## SDG Alignment
-- **SDG 2 — Zero Hunger** (Primary)
-- **SDG 13 — Climate Action** (Secondary)
-- **SDG 15 — Life on Land** (Secondary)
+---
 
-## Target Users
-- **Primary:** Smallholder and marginal farmers.
-- **Secondary:** Extension officers, NGOs, cooperatives.
+## Getting Started
 
-## Features & AI Architecture
-1. **Disease Pipeline (Prototype):** A PyTorch CNN structure (MobileNetV2). *Note: Currently runs in deterministic demo mode as no real dataset is present.*
-2. **Soil Pipeline (Synthetic):** An XGBoost tabular model trained on synthetic data representing N-P-K, pH, and moisture.
-3. **RAG Advisory:** A local vector database (ChromaDB) using `sentence-transformers` retrieves relevant agricultural advice from a demo corpus to ground LLM recommendations.
-4. **IBM Granite Integration (Optional):** Provider abstraction allows using IBM Granite (via Watsonx) when credentials are provided, falling back to a local-demo provider.
+### Prerequisites
 
-## System Architecture
-```text
-Frontend (React + Tailwind)
-   ↓
-FastAPI (Backend)
-   ↓
-Disease (PyTorch Demo) / Soil (XGBoost) Inference
-   ↓
-RAG Retrieval (ChromaDB)
-   ↓
-LLM (Local Demo or IBM Granite)
-   ↓
-Grounded Advisory with Citations
-   ↓
-Frontend Display
-```
+* Python 3.12+
+* Node.js 22+ & npm
+* Docker & Docker Compose (Optional)
 
-## Responsible AI
-- **Fairness:** Dataset limitations are audited and documented.
-- **Transparency:** All outputs show confidence, model version, and explicit demo/synthetic limitations.
-- **Ethics:** Tool is for decision support only. Fallbacks suggest consulting experts.
-- **Privacy:** No unnecessary PII is collected.
+### Local Development Setup
 
-## Limitations
-- **Prototype Status:** The models are trained on synthetic data or run in demo mode. **They are not field-validated and must not be used for actual agricultural diagnosis or fertilizer dosing.**
-- See [Dataset Card](docs/dataset-card/DATASET_CARD.md) and [Model Cards](docs/model-card/) for details.
+1. Clone the repository:
+   git clone https://github.com/tejaswin-amara/AgriGuard-AI.git
+   cd AgriGuard-AI
 
-## Project Structure
-- `backend/`: FastAPI application.
-- `frontend/`: React + Vite application.
-- `models/`: PyTorch and XGBoost training/inference code.
-- `rag/`: Corpus and vector DB scripts.
-- `docs/`: Architecture and compliance documentation.
+2. Backend Setup:
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r backend/requirements.txt
+   PYTHONPATH=backend pytest
+   PYTHONPATH=backend uvicorn app.main:app --reload --port 8000
 
-## Setup & Running Locally
+3. Frontend Setup:
+   cd frontend
+   npm ci
+   npm run lint
+   npm run build
 
-### Using Docker (Recommended)
-Use docker compose to start the services:
-`docker compose up --build`
-- Frontend: `http://localhost:80`
-- Backend API Docs: `http://localhost:8000/docs`
+### Running with Docker Compose
 
-### Manual Setup
-1. **Backend:**
-`cd backend && pip install -r requirements.txt && DATABASE_URL=sqlite:///./test.db uvicorn app.main:app --reload &`
+docker compose up --build -d
 
-2. **Frontend:**
-`cd frontend && npm install && npm run start &`
+Access the application at:
+* Frontend UI: http://localhost/
+* FastAPI Backend Swagger Docs: http://localhost:8000/docs
+* MinIO Console: http://localhost:9001/
 
-3. **RAG Ingestion:**
-To initialize the vector database for the demo corpus:
-`python rag/ingestion/ingest.py`
+---
 
-## Testing
-`cd backend && PYTHONPATH=. pytest tests/`
+## REST API Surface Summary
 
-## Internship Compliance
-See [`docs/INTERNSHIP-COMPLIANCE.md`](docs/INTERNSHIP-COMPLIANCE.md) for the full matrix mapping to 1M1B guidelines.
+* GET /api/v1/health — System and provider health status
+* POST /api/v1/farms — Create and geocode a farm plot
+* GET /api/v1/farms/{farm_id}/context — Retrieve aggregated farm context
+* POST /api/v1/disease/analyze — Leaf image disease CNN classification
+* POST /api/v1/soil/advise — NPK & pH soil health classification
+* POST /api/v1/advisory/generate — Generate grounded RAG advisory
+* GET /api/v1/advisories — List historical advisory audit trail
+* GET /api/v1/providers/health — Provider capability health diagnostics
 
-## License
-MIT — see [`LICENSE`](LICENSE).
+---
+
+## Responsible AI & Governance
+
+1. Zero Hallucination Grounding: Advisory recommendations are strictly grounded in retrieved extension documents.
+2. Explicit Provenance: Data points carry provenance badges distinguishing OBSERVED, WEATHER_MODEL, HISTORICAL_CLIMATE, ML_PREDICTION, and SYNTHETIC origins.
+3. Qualitative Risk Signals: Risk engine outputs qualitative pressure levels (low, moderate, elevated, severe) with plain-language meteorological explanations.
