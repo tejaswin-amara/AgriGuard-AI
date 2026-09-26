@@ -6,6 +6,7 @@ sys.path.append(
 )
 
 from rag.retrieval.retrieve import AdvisoryRetriever
+
 from app.schemas import Citation
 from app.services.llm import get_llm_provider
 
@@ -21,7 +22,6 @@ class RAGService:
         weather_summary: str | None = None,
         risk_summary: str | None = None,
     ) -> dict:
-        # 1. Retrieve raw citations from ChromaDB corpus
         raw_citations = self.retriever.retrieve(query, n_results=3)
 
         citations: list[Citation] = []
@@ -47,7 +47,6 @@ class RAGService:
             )
             context_text += f"\nSource {i + 1} ({c['title']}): {c['content']}\n"
 
-        # 2. Generate grounded response
         response = self.llm.generate(context=context_text, query=query)
 
         return {

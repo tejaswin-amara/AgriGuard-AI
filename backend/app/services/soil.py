@@ -6,6 +6,7 @@ sys.path.append(
 )
 
 from models.soil.inference import SoilInference
+
 from app.schemas import ModelProvenance, RiskContextSchema, SoilAdviseRequest
 from app.services.rag import rag_service
 
@@ -17,7 +18,6 @@ def advise_soil_readings(
     risk_context: RiskContextSchema | None = None,
     weather_summary: str | None = None,
 ) -> dict:
-    # 1. Preserve ML model prediction contract
     prediction = soil_inference.predict(
         n=readings.nitrogen,
         p=readings.phosphorus,
@@ -31,7 +31,6 @@ def advise_soil_readings(
     version = prediction["version"]
     is_synthetic = prediction["is_synthetic"]
 
-    # 2. Query RAG for soil advisory
     crop_str = readings.crop or "General"
     query = f"Soil health N={readings.nitrogen} P={readings.phosphorus} K={readings.potassium} pH={readings.ph} moisture={readings.moisture}% for {crop_str}"
     rag_res = rag_service.generate_advisory(

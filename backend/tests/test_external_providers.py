@@ -1,17 +1,16 @@
 import pytest
-from app.services.external.cache import ProviderCache, FreshnessState
-from app.services.external.errors import ProviderError, ProviderTimeoutError
+
+from app.services.external.cache import FreshnessState, ProviderCache
 from app.services.external.providers.mock_providers import (
-    MockAirQualityProvider,
-    MockBiodiversityProvider,
-    MockClimateProvider,
-    MockElevationProvider,
     MockGeocodingProvider,
-    MockNewsProvider,
     MockWeatherProvider,
 )
+from app.services.external.types import (
+    ClimateData,
+    Provenance,
+    WeatherData,
+)
 from app.services.risk_engine import RiskEngine
-from app.services.external.types import WeatherData, ClimateData, Provenance, DataQuality
 
 
 @pytest.mark.anyio

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -139,7 +139,7 @@ class ProviderStatusInfo(BaseModel):
     category: str
     is_required: bool
     enabled: bool
-    status: str  # healthy, degraded, unavailable
+    status: str
     latency_ms: float | None = None
     last_success: datetime | None = None
     last_failure: datetime | None = None

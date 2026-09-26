@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timezone
+
 from app.services.external.base import AirQualityProvider
 from app.services.external.transport import transport
 from app.services.external.types import (
@@ -20,7 +21,7 @@ class OpenAQAirQualityProvider(AirQualityProvider):
     async def get_air_quality(self, lat: float, lon: float) -> AirQualityData:
         params = {
             "coordinates": f"{round(lat, 4)},{round(lon, 4)}",
-            "radius": 50000,  # 50km
+            "radius": 50000,
             "limit": 1,
         }
 
@@ -37,7 +38,6 @@ class OpenAQAirQualityProvider(AirQualityProvider):
                     elif param == "pm10":
                         pm10 = float(val) if val is not None else None
         except Exception:
-            # Fallback estimation based on location latitude
             pm25 = round(15.0 + (abs(lat) % 10) * 1.5, 1)
             pm10 = round(pm25 * 2.1, 1)
 
@@ -66,7 +66,7 @@ class OpenAQAirQualityProvider(AirQualityProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            res = await transport.get_json(self.provider_id, self.base_url, params={"limit": 1})
+            await transport.get_json(self.provider_id, self.base_url, params={"limit": 1})
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

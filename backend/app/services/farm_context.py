@@ -1,9 +1,9 @@
 import asyncio
 import logging
-from typing import Any
-from sqlmodel import Session, select
 
-from app.models import Farm, FarmLocation
+from sqlmodel import Session
+
+from app.models import Farm
 from app.schemas import FarmContextResponse, FarmResponse
 from app.services.external.cache import provider_cache
 from app.services.external.providers import (
@@ -15,16 +15,18 @@ from app.services.external.providers import (
     OpenMeteoWeatherProvider,
     OpenTopoDataElevationProvider,
 )
+from app.services.external.providers.mock_providers import (
+    MockClimateProvider,
+    MockWeatherProvider,
+)
 from app.services.external.registry import provider_registry
 from app.services.external.types import (
     AirQualityData,
     BiodiversityData,
-    ClimateData,
     ElevationData,
     FreshnessState,
     GeocodedLocation,
     NewsData,
-    WeatherData,
 )
 from app.services.risk_engine import risk_engine
 
@@ -48,7 +50,6 @@ class FarmContextService:
             try:
                 return await self.geocoding_provider.geocode(farm.location_query)
             except Exception:
-                # Reverse geocode or fallback location
                 return await self.geocoding_provider.reverse_geocode(farm.latitude, farm.longitude)
 
         loc, _ = await provider_cache.get_or_fetch(cache_key, _fetch, "geocoding")
@@ -57,10 +58,8 @@ class FarmContextService:
     async def get_farm_context(self, session: Session, farm: Farm) -> FarmContextResponse:
         lat, lon = farm.latitude, farm.longitude
 
-        # 1. Geocoded Location
         location = await self.get_or_create_farm_location(session, farm)
 
-        # 2. Parallel fetching of weather, climate, and optional providers with cache deduplication
         weather_key = provider_cache.make_key("weather", lat=round(lat, 3), lon=round(lon, 3))
         climate_key = provider_cache.make_key("climate", lat=round(lat, 3), lon=round(lon, 3))
         aq_key = provider_cache.make_key("air_quality", lat=round(lat, 3), lon=round(lon, 3))
@@ -91,7 +90,6 @@ class FarmContextService:
             weather_task, climate_task, aq_task, elev_task, bio_task, news_task, return_exceptions=True
         )
 
-        # Unpack results safely with fallback default schemas for resilience
         weather, w_fresh = results[0] if not isinstance(results[0], Exception) else (None, FreshnessState.UNAVAILABLE)
         climate, c_fresh = results[1] if not isinstance(results[1], Exception) else (None, FreshnessState.UNAVAILABLE)
         air_quality, aq_fresh = results[2] if not isinstance(results[2], Exception) else (None, FreshnessState.UNAVAILABLE)
@@ -99,18 +97,14 @@ class FarmContextService:
         biodiversity, b_fresh = results[4] if not isinstance(results[4], Exception) else (None, FreshnessState.UNAVAILABLE)
         news, n_fresh = results[5] if not isinstance(results[5], Exception) else (None, FreshnessState.UNAVAILABLE)
 
-        # Fallback mocks if core required provider calls fail completely
         if weather is None:
-            from app.services.external.providers.mock_providers import MockWeatherProvider
             weather = await MockWeatherProvider().get_weather(lat, lon)
             w_fresh = FreshnessState.STALE
 
         if climate is None:
-            from app.services.external.providers.mock_providers import MockClimateProvider
             climate = await MockClimateProvider().get_climate(lat, lon)
             c_fresh = FreshnessState.STALE
 
-        # 3. Calculate Risk Engine Signals
         elevation_val = elevation.elevation_m if elevation else farm.elevation_m
         risk_ctx = risk_engine.evaluate(
             weather=weather,
@@ -118,7 +112,6 @@ class FarmContextService:
             elevation_m=elevation_val,
         )
 
-        # 4. Collect provider statuses
         provider_statuses = await provider_registry.get_health_status()
 
         freshness_map = {

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+
 from app.services.external.providers.nasa_power import NASAPowerClimateProvider
 from app.services.external.providers.open_meteo import OpenMeteoWeatherProvider
 from app.services.external.types import ClimateData, WeatherData
@@ -16,7 +17,7 @@ async def get_weather(
     try:
         return await weather_provider.get_weather(lat, lon)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Weather provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Weather provider error: {e!s}")
 
 
 @router.get("/climate", response_model=ClimateData, summary="Get Historical Agroclimate Baseline")
@@ -27,4 +28,4 @@ async def get_climate(
     try:
         return await climate_provider.get_climate(lat, lon)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Climate provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Climate provider error: {e!s}")

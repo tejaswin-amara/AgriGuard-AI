@@ -1,0 +1,5 @@
+[lint]
+ignore = [
+    "B008",   # FastAPI Depends() / File() / Query() in route default arguments
+    "BLE001",  # Do not catch blind exception
+]

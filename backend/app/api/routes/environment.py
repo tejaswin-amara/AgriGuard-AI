@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+
 from app.services.external.providers.open_topo_data import OpenTopoDataElevationProvider
 from app.services.external.providers.openaq import OpenAQAirQualityProvider
 from app.services.external.types import AirQualityData, ElevationData
@@ -16,7 +17,7 @@ async def get_air_quality(
     try:
         return await aq_provider.get_air_quality(lat, lon)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Air quality provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Air quality provider error: {e!s}")
 
 
 @router.get("/elevation", response_model=ElevationData, summary="Get Terrain Elevation")
@@ -27,4 +28,4 @@ async def get_elevation(
     try:
         return await elev_provider.get_elevation(lat, lon)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Elevation provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Elevation provider error: {e!s}")

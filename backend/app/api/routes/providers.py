@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from app.services.external.registry import provider_registry
 from app.services.external.types import ProviderStatusInfo
 

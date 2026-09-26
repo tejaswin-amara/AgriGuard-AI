@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any
+
 from app.services.external.base import ExternalDataProvider
 from app.services.external.types import ProviderStatusInfo
 

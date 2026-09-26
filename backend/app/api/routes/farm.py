@@ -16,7 +16,7 @@ async def create_farm(farm_in: FarmCreate, session: Session = Depends(get_sessio
         location = await farm_context_service.geocoding_provider.geocode(farm_in.location_query)
         lat, lon = location.latitude, location.longitude
         elevation = location.elevation_m
-    except Exception as e:
+    except Exception:
         # Fallback default coordinates if geocoder times out or fails
         lat, lon = 18.67, 78.09
         elevation = 395.0

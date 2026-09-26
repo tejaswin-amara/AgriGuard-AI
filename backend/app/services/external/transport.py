@@ -1,7 +1,9 @@
 import asyncio
 import logging
 import time
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
+
 import httpx
 
 from app.services.external.errors import (
@@ -87,9 +89,9 @@ class AsyncHttpTransport:
                     try:
                         return response.json()
                     except Exception as e:
-                        raise ProviderResponseError(provider_id, f"Invalid JSON response: {str(e)}")
+                        raise ProviderResponseError(provider_id, f"Invalid JSON response: {e!s}")
 
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 if attempt <= self.max_retries:
                     logger.warning(
                         f"[{provider_id}] Timeout ({req_timeout}s). Retrying in {backoff}s (attempt {attempt}/{self.max_retries})"
@@ -101,12 +103,12 @@ class AsyncHttpTransport:
             except (httpx.NetworkError, httpx.ProtocolError) as e:
                 if attempt <= self.max_retries:
                     logger.warning(
-                        f"[{provider_id}] Network error: {str(e)}. Retrying in {backoff}s (attempt {attempt}/{self.max_retries})"
+                        f"[{provider_id}] Network error: {e!s}. Retrying in {backoff}s (attempt {attempt}/{self.max_retries})"
                     )
                     await asyncio.sleep(backoff)
                     backoff *= 2
                     continue
-                raise ProviderError(provider_id, f"Network error: {str(e)}")
+                raise ProviderError(provider_id, f"Network error: {e!s}")
 
 
 transport = AsyncHttpTransport()

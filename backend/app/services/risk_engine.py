@@ -1,4 +1,5 @@
 import logging
+
 from app.schemas import RiskContextSchema, RiskSignal
 from app.services.external.types import ClimateData, WeatherData
 
@@ -24,7 +25,6 @@ class RiskEngine:
         signals: list[RiskSignal] = []
         explanations: list[str] = []
 
-        # 1. Fungal Pressure Signal
         fungal_level = "low"
         fungal_score = 0.2
         fungal_reasons = []
@@ -67,7 +67,6 @@ class RiskEngine:
         if fungal_reasons:
             explanations.extend(fungal_reasons)
 
-        # 2. Water Stress Signal
         water_level = "optimal"
         water_score = 0.1
         water_reasons = []
@@ -105,7 +104,6 @@ class RiskEngine:
         if water_reasons:
             explanations.extend(water_reasons)
 
-        # 3. Heat Stress Signal
         heat_level = "none"
         heat_score = 0.0
         heat_reasons = []
@@ -136,7 +134,6 @@ class RiskEngine:
         if heat_reasons:
             explanations.extend(heat_reasons)
 
-        # Overall risk calculation
         overall_level = "low"
         if fungal_level == "elevated" or water_level == "severe" or heat_level == "high":
             overall_level = "elevated"

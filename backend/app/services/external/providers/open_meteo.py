@@ -1,6 +1,7 @@
 import math
 import time
 from datetime import datetime, timezone
+
 from app.services.external.base import WeatherProvider
 from app.services.external.errors import ProviderResponseError
 from app.services.external.transport import transport
@@ -46,12 +47,10 @@ class OpenMeteoWeatherProvider(WeatherProvider):
         # Compute Vapor Pressure Deficit (VPD) if temp & humidity exist
         vpd_kpa = None
         if temp_c is not None and humidity is not None:
-            # Saturation vapor pressure es (kPa) = 0.61078 * exp((17.27 * T) / (T + 237.3))
             es = 0.61078 * math.exp((17.27 * temp_c) / (temp_c + 237.3))
             ea = es * (humidity / 100.0)
             vpd_kpa = round(max(0.0, es - ea), 3)
 
-        # Compute daily forecast days & ET0 / GDD
         forecast_days: list[ForecastDay] = []
         daily_times = daily.get("time", [])
         max_temps = daily.get("temperature_2m_max", [])
@@ -71,7 +70,6 @@ class OpenMeteoWeatherProvider(WeatherProvider):
             if idx == 0:
                 et0_val = et0
                 if tmax is not None and tmin is not None:
-                    # GDD base 10C
                     tavg = (tmax + tmin) / 2.0
                     gdd_val = round(max(0.0, tavg - 10.0), 2)
 
@@ -114,7 +112,7 @@ class OpenMeteoWeatherProvider(WeatherProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            res = await transport.get_json(self.provider_id, self.base_url, params={"latitude": 0, "longitude": 0, "current": "temperature_2m"})
+            await transport.get_json(self.provider_id, self.base_url, params={"latitude": 0, "longitude": 0, "current": "temperature_2m"})
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timezone
+
 from app.services.external.base import BiodiversityProvider
 from app.services.external.transport import transport
 from app.services.external.types import (
@@ -19,7 +20,6 @@ class GBIFBiodiversityProvider(BiodiversityProvider):
     base_url = "https://api.gbif.org/v1/occurrence/search"
 
     async def get_biodiversity(self, lat: float, lon: float) -> BiodiversityData:
-        # Search occurrence observations within ~20km box
         lat_min, lat_max = round(lat - 0.2, 3), round(lat + 0.2, 3)
         lon_min, lon_max = round(lon - 0.2, 3), round(lon + 0.2, 3)
 
@@ -74,7 +74,7 @@ class GBIFBiodiversityProvider(BiodiversityProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            res = await transport.get_json(self.provider_id, self.base_url, params={"limit": 1})
+            await transport.get_json(self.provider_id, self.base_url, params={"limit": 1})
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

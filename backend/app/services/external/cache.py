@@ -1,14 +1,15 @@
 import asyncio
 import logging
 import time
-from typing import Any, Callable, Coroutine, TypeVar
+from collections.abc import Callable, Coroutine
+from typing import Any, TypeVar
+
 from app.services.external.types import FreshnessState
 
 logger = logging.getLogger("agriguard.external.cache")
 
 T = TypeVar("T")
 
-# Configurable Default TTLs in seconds
 TTL_POLICIES = {
     "weather": 1800,         # 30 minutes
     "climate": 86400,        # 24 hours
@@ -19,7 +20,7 @@ TTL_POLICIES = {
     "news": 1800,            # 30 minutes
 }
 
-STALE_WINDOW_MULTIPLIER = 4.0  # Retain stale data up to 4x TTL for graceful degradation fallbacks
+STALE_WINDOW_MULTIPLIER = 4.0
 
 
 class CacheEntry:
@@ -33,7 +34,7 @@ class CacheEntry:
         age = time.time() - self.created_at
         if age <= self.ttl_seconds:
             return FreshnessState.FRESH if age < 10 else FreshnessState.CACHED
-        elif age <= self.ttl_seconds * STALE_WINDOW_MULTIPLIER:
+        if age <= self.ttl_seconds * STALE_WINDOW_MULTIPLIER:
             return FreshnessState.STALE
         return FreshnessState.UNAVAILABLE
 
@@ -72,29 +73,23 @@ class ProviderCache:
         category: str,
         allow_stale_on_error: bool = True,
     ) -> tuple[T, FreshnessState]:
-        # 1. Check cache first
         val, freshness = self.get(key)
         if val is not None and freshness in (FreshnessState.FRESH, FreshnessState.CACHED):
             return val, FreshnessState.CACHED
 
-        # 2. Check inflight deduplication
         async with self._lock:
             if key in self._inflight:
                 fut = self._inflight[key]
-                # Wait for inflight fetch
                 try:
                     res = await fut
                     return res, FreshnessState.FRESH
-                except Exception:
-                    # Inflight failed, proceed to retry/fallback
-                    pass
+                except Exception as e:
+                    logger.debug(f"Inflight fetch for {key} failed: {e}")
 
-            # Register as inflight
             loop = asyncio.get_running_loop()
             fut = loop.create_future()
             self._inflight[key] = fut
 
-        # 3. Perform fetch
         ttl_seconds = TTL_POLICIES.get(category, 1800)
         try:
             result = await fetch_coro_fn()
@@ -106,11 +101,10 @@ class ProviderCache:
             if not fut.done():
                 fut.set_exception(e)
 
-            # 4. Graceful degradation to stale cache if available
             if allow_stale_on_error and val is not None and freshness == FreshnessState.STALE:
-                logger.warning(f"Fetch for {key} failed ({str(e)}); serving stale cached fallback.")
+                logger.warning(f"Fetch for {key} failed ({e!s}); serving stale cached fallback.")
                 return val, FreshnessState.STALE
-            raise e
+            raise
         finally:
             async with self._lock:
                 self._inflight.pop(key, None)

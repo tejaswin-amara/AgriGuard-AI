@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timedelta, timezone
+
 from app.services.external.base import ClimateProvider
 from app.services.external.errors import ProviderResponseError
 from app.services.external.transport import transport
@@ -57,12 +58,10 @@ class NASAPowerClimateProvider(ClimateProvider):
         max_temp = round(max(temps), 2) if temps else None
         total_precip = round(sum(precips), 2) if precips else 0.0
 
-        # Calculate 7d, 14d, 30d rainfall
         precip_last_7 = round(sum(precips[-7:]), 2) if len(precips) >= 7 else total_precip
         precip_last_14 = round(sum(precips[-14:]), 2) if len(precips) >= 14 else total_precip
         precip_last_30 = total_precip
 
-        # Calculate dry spell (consecutive days with < 1.0mm precip)
         dry_spell = 0
         for p in reversed(precips):
             if p < 1.0:
@@ -70,7 +69,6 @@ class NASAPowerClimateProvider(ClimateProvider):
             else:
                 break
 
-        # Calculate cumulative GDD (base 10)
         gdd_cum = 0.0
         for d in dates_sorted:
             tmin = t2m_min_dict.get(d)
@@ -109,9 +107,8 @@ class NASAPowerClimateProvider(ClimateProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            # Quick health check query
             dt_str = (datetime.now(timezone.utc) - timedelta(days=5)).strftime("%Y%m%d")
-            res = await transport.get_json(
+            await transport.get_json(
                 self.provider_id,
                 self.base_url,
                 params={"parameters": "T2M", "community": "AG", "longitude": 0, "latitude": 0, "start": dt_str, "end": dt_str, "format": "JSON"},

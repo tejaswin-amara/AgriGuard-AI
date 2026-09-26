@@ -1,15 +1,19 @@
 from datetime import datetime, timezone
+
 from pydantic import BaseModel, Field
+
 from app.services.external.types import (
     AirQualityData,
     BiodiversityData,
     ClimateData,
     ElevationData,
     GeocodedLocation,
-    NewsArticle,
     NewsData,
     ProviderStatusInfo,
     WeatherData,
+)
+from app.services.external.types import (
+    NewsArticle as NewsArticle,
 )
 
 
@@ -20,14 +24,14 @@ class Citation(BaseModel):
     document_id: str
     url: str | None = None
     provider: str | None = None
-    source_type: str | None = "knowledge_document"  # knowledge_document, external_observation, historical_climate, model_output, news
+    source_type: str | None = "knowledge_document"
     data_quality: str | None = "modelled"
 
 
 class ModelProvenance(BaseModel):
     model_name: str
     model_version: str
-    inference_mode: str = "demo"  # demo, production, synthetic
+    inference_mode: str = "demo"
     training_data: str = "synthetic"
     field_validated: bool = False
     limitation: str
@@ -35,8 +39,8 @@ class ModelProvenance(BaseModel):
 
 class RiskSignal(BaseModel):
     name: str
-    level: str  # low, moderate, elevated, severe
-    score: float  # 0.0 - 1.0 (heuristic indicator score)
+    level: str
+    score: float
     explanation: str
 
 

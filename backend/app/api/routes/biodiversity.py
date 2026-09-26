@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Query
+
 from app.services.external.providers.gbif import GBIFBiodiversityProvider
 from app.services.external.types import BiodiversityData
 

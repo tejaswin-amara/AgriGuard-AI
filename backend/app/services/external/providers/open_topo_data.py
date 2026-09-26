@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timezone
+
 from app.services.external.base import ElevationProvider
 from app.services.external.errors import ProviderResponseError
 from app.services.external.transport import transport
@@ -47,7 +48,7 @@ class OpenTopoDataElevationProvider(ElevationProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            res = await transport.get_json(self.provider_id, self.base_url, params={"locations": "0,0"})
+            await transport.get_json(self.provider_id, self.base_url, params={"locations": "0,0"})
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

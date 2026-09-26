@@ -51,7 +51,7 @@ class GraniteProvider(LLMProvider):
             )
             logger.info(f"Initialized IBM WatsonX Granite model: {self.model_id}")
         except Exception as e:
-            logger.warning(f"Could not initialize IBM WatsonX client ({str(e)}). Will fall back to DemoProvider.")
+            logger.warning(f"Could not initialize IBM WatsonX client ({e!s}). Will fall back to DemoProvider.")
             self._model = None
 
     def generate(self, context: str, query: str) -> dict:
@@ -62,7 +62,6 @@ class GraniteProvider(LLMProvider):
             }
 
         if self._model is None:
-            # Safe fallback if credentials or initialization failed
             demo = DemoProvider()
             res = demo.generate(context, query)
             res["provider"] = "ibm-granite (local fallback)"
@@ -85,7 +84,7 @@ class GraniteProvider(LLMProvider):
                 "provider": "ibm-granite",
             }
         except Exception as e:
-            logger.error(f"Error calling IBM Granite API: {str(e)}")
+            logger.error(f"Error calling IBM Granite API: {e!s}")
             demo = DemoProvider()
             res = demo.generate(context, query)
             res["provider"] = "ibm-granite (error fallback)"

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+
 from app.services.external.providers.nominatim import NominatimGeocodingProvider
 from app.services.external.types import GeocodedLocation
 

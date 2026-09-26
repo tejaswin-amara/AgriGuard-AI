@@ -6,7 +6,8 @@ sys.path.append(
 )
 
 from models.disease.inference import DiseaseInference
-from app.schemas import Citation, ModelProvenance, RiskContextSchema
+
+from app.schemas import ModelProvenance, RiskContextSchema
 from app.services.rag import rag_service
 
 disease_inference = DiseaseInference()

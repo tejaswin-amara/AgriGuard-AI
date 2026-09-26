@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+
 from app.services.external.types import (
     AirQualityData,
     BiodiversityData,
@@ -21,7 +21,6 @@ class ExternalDataProvider(ABC):
     @abstractmethod
     async def health_check(self) -> ProviderStatusInfo:
         """Check if provider endpoint is responsive."""
-        pass
 
 
 class WeatherProvider(ExternalDataProvider):

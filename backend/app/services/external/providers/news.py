@@ -1,7 +1,6 @@
-import time
 from datetime import datetime, timezone
+
 from app.services.external.base import NewsProvider
-from app.services.external.transport import transport
 from app.services.external.types import (
     DataQuality,
     FreshnessState,
