@@ -1,7 +1,8 @@
+import os
+import pickle
+
 import numpy as np
 import xgboost as xgb
-import pickle
-import os
 
 
 def generate_synthetic_data(n_samples=1000, seed=42):

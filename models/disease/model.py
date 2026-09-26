@@ -1,4 +1,4 @@
-import torch.nn as nn
+from torch import nn
 from torchvision.models import mobilenet_v2
 
 
@@ -9,7 +9,7 @@ class DiseaseModelDemo(nn.Module):
     """
 
     def __init__(self, num_classes=3):
-        super(DiseaseModelDemo, self).__init__()
+        super().__init__()
         self.backbone = mobilenet_v2(pretrained=False)
         self.backbone.classifier[1] = nn.Linear(self.backbone.last_channel, num_classes)
 

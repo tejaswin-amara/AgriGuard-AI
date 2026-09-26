@@ -1,4 +1,5 @@
 import os
+
 import chromadb
 from chromadb.utils import embedding_functions
 
@@ -15,7 +16,7 @@ class AdvisoryRetriever:
             self.collection = self.client.get_collection(
                 "agri_advisory", embedding_function=self.ef
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.collection = None
 
     def retrieve(self, query: str, n_results: int = 2):
