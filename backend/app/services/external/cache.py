@@ -11,13 +11,13 @@ logger = logging.getLogger("agriguard.external.cache")
 T = TypeVar("T")
 
 TTL_POLICIES = {
-    "weather": 1800,         # 30 minutes
-    "climate": 86400,        # 24 hours
-    "geocoding": 604800,     # 7 days
-    "air_quality": 3600,     # 1 hour
-    "elevation": 604800,     # 7 days
-    "biodiversity": 86400,   # 24 hours
-    "news": 1800,            # 30 minutes
+    "weather": 1800,  # 30 minutes
+    "climate": 86400,  # 24 hours
+    "geocoding": 604800,  # 7 days
+    "air_quality": 3600,  # 1 hour
+    "elevation": 604800,  # 7 days
+    "biodiversity": 86400,  # 24 hours
+    "news": 1800,  # 30 minutes
 }
 
 STALE_WINDOW_MULTIPLIER = 4.0
@@ -74,7 +74,10 @@ class ProviderCache:
         allow_stale_on_error: bool = True,
     ) -> tuple[T, FreshnessState]:
         val, freshness = self.get(key)
-        if val is not None and freshness in (FreshnessState.FRESH, FreshnessState.CACHED):
+        if val is not None and freshness in (
+            FreshnessState.FRESH,
+            FreshnessState.CACHED,
+        ):
             return val, FreshnessState.CACHED
 
         async with self._lock:
@@ -101,8 +104,14 @@ class ProviderCache:
             if not fut.done():
                 fut.set_exception(e)
 
-            if allow_stale_on_error and val is not None and freshness == FreshnessState.STALE:
-                logger.warning(f"Fetch for {key} failed ({e!s}); serving stale cached fallback.")
+            if (
+                allow_stale_on_error
+                and val is not None
+                and freshness == FreshnessState.STALE
+            ):
+                logger.warning(
+                    f"Fetch for {key} failed ({e!s}); serving stale cached fallback."
+                )
                 return val, FreshnessState.STALE
             raise
         finally:

@@ -15,7 +15,12 @@ class ProviderTimeoutError(ProviderError):
 class ProviderRateLimitError(ProviderError):
     """Raised when external provider rate limit is exceeded (HTTP 429)."""
 
-    def __init__(self, provider_id: str, message: str = "Rate limit exceeded", retry_after: int | None = None):
+    def __init__(
+        self,
+        provider_id: str,
+        message: str = "Rate limit exceeded",
+        retry_after: int | None = None,
+    ):
         super().__init__(provider_id, message, status_code=429)
         self.retry_after = retry_after
 

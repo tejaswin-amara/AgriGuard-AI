@@ -9,7 +9,11 @@ aq_provider = OpenAQAirQualityProvider()
 elev_provider = OpenTopoDataElevationProvider()
 
 
-@router.get("/air-quality", response_model=AirQualityData, summary="Get Environmental Air Quality Data")
+@router.get(
+    "/air-quality",
+    response_model=AirQualityData,
+    summary="Get Environmental Air Quality Data",
+)
 async def get_air_quality(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
@@ -17,7 +21,9 @@ async def get_air_quality(
     try:
         return await aq_provider.get_air_quality(lat, lon)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Air quality provider error: {e!s}")
+        raise HTTPException(
+            status_code=502, detail=f"Air quality provider error: {e!s}"
+        )
 
 
 @router.get("/elevation", response_model=ElevationData, summary="Get Terrain Elevation")

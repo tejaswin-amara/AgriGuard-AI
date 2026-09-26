@@ -28,9 +28,13 @@ class NominatimGeocodingProvider(GeocodingProvider):
             "limit": 1,
         }
 
-        data = await transport.get_json(self.provider_id, self.search_url, params=params)
+        data = await transport.get_json(
+            self.provider_id, self.search_url, params=params
+        )
         if not isinstance(data, list) or len(data) == 0:
-            raise ProviderResponseError(self.provider_id, f"No geocoding results found for query '{query}'")
+            raise ProviderResponseError(
+                self.provider_id, f"No geocoding results found for query '{query}'"
+            )
 
         result = data[0]
         addr = result.get("address", {})
@@ -67,9 +71,13 @@ class NominatimGeocodingProvider(GeocodingProvider):
             "addressdetails": 1,
         }
 
-        data = await transport.get_json(self.provider_id, self.reverse_url, params=params)
+        data = await transport.get_json(
+            self.provider_id, self.reverse_url, params=params
+        )
         if not isinstance(data, dict) or "lat" not in data:
-            raise ProviderResponseError(self.provider_id, f"Invalid reverse geocoding response for {lat},{lon}")
+            raise ProviderResponseError(
+                self.provider_id, f"Invalid reverse geocoding response for {lat},{lon}"
+            )
 
         addr = data.get("address", {})
         display_name = data.get("display_name", f"{lat:.4f}, {lon:.4f}")
@@ -101,7 +109,11 @@ class NominatimGeocodingProvider(GeocodingProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            await transport.get_json(self.provider_id, self.search_url, params={"q": "Hyderabad", "format": "jsonv2", "limit": 1})
+            await transport.get_json(
+                self.provider_id,
+                self.search_url,
+                params={"q": "Hyderabad", "format": "jsonv2", "limit": 1},
+            )
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

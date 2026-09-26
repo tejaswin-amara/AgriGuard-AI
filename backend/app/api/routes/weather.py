@@ -9,7 +9,11 @@ weather_provider = OpenMeteoWeatherProvider()
 climate_provider = NASAPowerClimateProvider()
 
 
-@router.get("/weather", response_model=WeatherData, summary="Get Live Weather & Short-term Forecast")
+@router.get(
+    "/weather",
+    response_model=WeatherData,
+    summary="Get Live Weather & Short-term Forecast",
+)
 async def get_weather(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
@@ -20,7 +24,11 @@ async def get_weather(
         raise HTTPException(status_code=502, detail=f"Weather provider error: {e!s}")
 
 
-@router.get("/climate", response_model=ClimateData, summary="Get Historical Agroclimate Baseline")
+@router.get(
+    "/climate",
+    response_model=ClimateData,
+    summary="Get Historical Agroclimate Baseline",
+)
 async def get_climate(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),

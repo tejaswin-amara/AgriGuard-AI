@@ -43,28 +43,44 @@ class FarmContextService:
         self.biodiversity_provider = GBIFBiodiversityProvider()
         self.news_provider = AgricultureNewsProvider()
 
-    async def get_or_create_farm_location(self, session: Session, farm: Farm) -> GeocodedLocation:
+    async def get_or_create_farm_location(
+        self, session: Session, farm: Farm
+    ) -> GeocodedLocation:
         cache_key = provider_cache.make_key("geocoding", farm.location_query)
 
         async def _fetch():
             try:
                 return await self.geocoding_provider.geocode(farm.location_query)
             except Exception:
-                return await self.geocoding_provider.reverse_geocode(farm.latitude, farm.longitude)
+                return await self.geocoding_provider.reverse_geocode(
+                    farm.latitude, farm.longitude
+                )
 
         loc, _ = await provider_cache.get_or_fetch(cache_key, _fetch, "geocoding")
         return loc
 
-    async def get_farm_context(self, session: Session, farm: Farm) -> FarmContextResponse:
+    async def get_farm_context(
+        self, session: Session, farm: Farm
+    ) -> FarmContextResponse:
         lat, lon = farm.latitude, farm.longitude
 
         location = await self.get_or_create_farm_location(session, farm)
 
-        weather_key = provider_cache.make_key("weather", lat=round(lat, 3), lon=round(lon, 3))
-        climate_key = provider_cache.make_key("climate", lat=round(lat, 3), lon=round(lon, 3))
-        aq_key = provider_cache.make_key("air_quality", lat=round(lat, 3), lon=round(lon, 3))
-        elev_key = provider_cache.make_key("elevation", lat=round(lat, 3), lon=round(lon, 3))
-        bio_key = provider_cache.make_key("biodiversity", lat=round(lat, 3), lon=round(lon, 3))
+        weather_key = provider_cache.make_key(
+            "weather", lat=round(lat, 3), lon=round(lon, 3)
+        )
+        climate_key = provider_cache.make_key(
+            "climate", lat=round(lat, 3), lon=round(lon, 3)
+        )
+        aq_key = provider_cache.make_key(
+            "air_quality", lat=round(lat, 3), lon=round(lon, 3)
+        )
+        elev_key = provider_cache.make_key(
+            "elevation", lat=round(lat, 3), lon=round(lon, 3)
+        )
+        bio_key = provider_cache.make_key(
+            "biodiversity", lat=round(lat, 3), lon=round(lon, 3)
+        )
         news_key = provider_cache.make_key("news", query=farm.primary_crop)
 
         weather_task = provider_cache.get_or_fetch(
@@ -74,28 +90,64 @@ class FarmContextService:
             climate_key, lambda: self.climate_provider.get_climate(lat, lon), "climate"
         )
         aq_task = provider_cache.get_or_fetch(
-            aq_key, lambda: self.air_quality_provider.get_air_quality(lat, lon), "air_quality"
+            aq_key,
+            lambda: self.air_quality_provider.get_air_quality(lat, lon),
+            "air_quality",
         )
         elev_task = provider_cache.get_or_fetch(
-            elev_key, lambda: self.elevation_provider.get_elevation(lat, lon), "elevation"
+            elev_key,
+            lambda: self.elevation_provider.get_elevation(lat, lon),
+            "elevation",
         )
         bio_task = provider_cache.get_or_fetch(
-            bio_key, lambda: self.biodiversity_provider.get_biodiversity(lat, lon), "biodiversity"
+            bio_key,
+            lambda: self.biodiversity_provider.get_biodiversity(lat, lon),
+            "biodiversity",
         )
         news_task = provider_cache.get_or_fetch(
             news_key, lambda: self.news_provider.get_news(farm.primary_crop), "news"
         )
 
         results = await asyncio.gather(
-            weather_task, climate_task, aq_task, elev_task, bio_task, news_task, return_exceptions=True
+            weather_task,
+            climate_task,
+            aq_task,
+            elev_task,
+            bio_task,
+            news_task,
+            return_exceptions=True,
         )
 
-        weather, w_fresh = results[0] if not isinstance(results[0], Exception) else (None, FreshnessState.UNAVAILABLE)
-        climate, c_fresh = results[1] if not isinstance(results[1], Exception) else (None, FreshnessState.UNAVAILABLE)
-        air_quality, aq_fresh = results[2] if not isinstance(results[2], Exception) else (None, FreshnessState.UNAVAILABLE)
-        elevation, e_fresh = results[3] if not isinstance(results[3], Exception) else (None, FreshnessState.UNAVAILABLE)
-        biodiversity, b_fresh = results[4] if not isinstance(results[4], Exception) else (None, FreshnessState.UNAVAILABLE)
-        news, n_fresh = results[5] if not isinstance(results[5], Exception) else (None, FreshnessState.UNAVAILABLE)
+        weather, w_fresh = (
+            results[0]
+            if not isinstance(results[0], Exception)
+            else (None, FreshnessState.UNAVAILABLE)
+        )
+        climate, c_fresh = (
+            results[1]
+            if not isinstance(results[1], Exception)
+            else (None, FreshnessState.UNAVAILABLE)
+        )
+        air_quality, aq_fresh = (
+            results[2]
+            if not isinstance(results[2], Exception)
+            else (None, FreshnessState.UNAVAILABLE)
+        )
+        elevation, e_fresh = (
+            results[3]
+            if not isinstance(results[3], Exception)
+            else (None, FreshnessState.UNAVAILABLE)
+        )
+        biodiversity, b_fresh = (
+            results[4]
+            if not isinstance(results[4], Exception)
+            else (None, FreshnessState.UNAVAILABLE)
+        )
+        news, n_fresh = (
+            results[5]
+            if not isinstance(results[5], Exception)
+            else (None, FreshnessState.UNAVAILABLE)
+        )
 
         if weather is None:
             weather = await MockWeatherProvider().get_weather(lat, lon)
@@ -143,9 +195,13 @@ class FarmContextService:
             location=location,
             weather=weather,
             climate=climate,
-            air_quality=air_quality if isinstance(air_quality, AirQualityData) else None,
+            air_quality=air_quality
+            if isinstance(air_quality, AirQualityData)
+            else None,
             elevation=elevation if isinstance(elevation, ElevationData) else None,
-            biodiversity=biodiversity if isinstance(biodiversity, BiodiversityData) else None,
+            biodiversity=biodiversity
+            if isinstance(biodiversity, BiodiversityData)
+            else None,
             news=news if isinstance(news, NewsData) else None,
             risk_context=risk_ctx,
             provider_status=provider_statuses,

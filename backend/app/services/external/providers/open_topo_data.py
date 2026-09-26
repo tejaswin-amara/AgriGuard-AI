@@ -24,7 +24,9 @@ class OpenTopoDataElevationProvider(ElevationProvider):
 
         data = await transport.get_json(self.provider_id, self.base_url, params=params)
         if not isinstance(data, dict) or "results" not in data or not data["results"]:
-            raise ProviderResponseError(self.provider_id, "Invalid response from Open Topo Data")
+            raise ProviderResponseError(
+                self.provider_id, "Invalid response from Open Topo Data"
+            )
 
         result = data["results"][0]
         elev = float(result.get("elevation", 0.0))
@@ -48,7 +50,9 @@ class OpenTopoDataElevationProvider(ElevationProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            await transport.get_json(self.provider_id, self.base_url, params={"locations": "0,0"})
+            await transport.get_json(
+                self.provider_id, self.base_url, params={"locations": "0,0"}
+            )
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

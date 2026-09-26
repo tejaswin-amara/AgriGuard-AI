@@ -12,7 +12,9 @@ class GeocodeRequest(BaseModel):
     query: str = Field(..., min_length=2, max_length=200)
 
 
-@router.post("/geocode", response_model=GeocodedLocation, summary="Forward Geocode Location Name")
+@router.post(
+    "/geocode", response_model=GeocodedLocation, summary="Forward Geocode Location Name"
+)
 async def geocode_location(req: GeocodeRequest):
     try:
         return await geocoder.geocode(req.query)
@@ -20,7 +22,9 @@ async def geocode_location(req: GeocodeRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/reverse", response_model=GeocodedLocation, summary="Reverse Geocode Coordinates")
+@router.get(
+    "/reverse", response_model=GeocodedLocation, summary="Reverse Geocode Coordinates"
+)
 async def reverse_geocode_location(lat: float, lon: float):
     try:
         return await geocoder.reverse_geocode(lat, lon)

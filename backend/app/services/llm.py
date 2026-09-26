@@ -51,7 +51,9 @@ class GraniteProvider(LLMProvider):
             )
             logger.info(f"Initialized IBM WatsonX Granite model: {self.model_id}")
         except Exception as e:
-            logger.warning(f"Could not initialize IBM WatsonX client ({e!s}). Will fall back to DemoProvider.")
+            logger.warning(
+                f"Could not initialize IBM WatsonX client ({e!s}). Will fall back to DemoProvider."
+            )
             self._model = None
 
     def generate(self, context: str, query: str) -> dict:

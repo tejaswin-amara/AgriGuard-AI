@@ -16,7 +16,9 @@ router = APIRouter(prefix="/soil", tags=["Soil"])
     status_code=status.HTTP_201_CREATED,
     summary="Analyze Soil Health Parameters with Environmental Context",
 )
-async def advise_soil(readings: SoilAdviseRequest, session: Session = Depends(get_session)):
+async def advise_soil(
+    readings: SoilAdviseRequest, session: Session = Depends(get_session)
+):
     # 1. Fetch farm context if farm_id provided
     risk_ctx = None
     weather_summary = None

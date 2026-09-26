@@ -30,7 +30,9 @@ async def analyze_disease(
             detail="Missing image file. Please upload an image file under parameter 'file' or 'image'.",
         )
 
-    if not upload_file.content_type or not upload_file.content_type.startswith("image/"):
+    if not upload_file.content_type or not upload_file.content_type.startswith(
+        "image/"
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid file format. Please upload an image file (e.g. JPEG, PNG).",
@@ -39,7 +41,9 @@ async def analyze_disease(
     # Read image file bytes with 10MB upload limit
     image_bytes = await upload_file.read()
     if len(image_bytes) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File size exceeds maximum 10MB limit.")
+        raise HTTPException(
+            status_code=400, detail="File size exceeds maximum 10MB limit."
+        )
 
     # 1. Fetch farm context if farm_id provided
     risk_ctx = None

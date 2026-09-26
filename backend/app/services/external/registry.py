@@ -13,7 +13,9 @@ class ProviderRegistry:
 
     def register(self, provider: ExternalDataProvider):
         self._providers[provider.provider_id] = provider
-        logger.info(f"Registered external provider: {provider.provider_id} ({provider.provider_name})")
+        logger.info(
+            f"Registered external provider: {provider.provider_id} ({provider.provider_name})"
+        )
 
     def get(self, provider_id: str) -> ExternalDataProvider | None:
         return self._providers.get(provider_id)

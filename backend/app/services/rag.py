@@ -36,9 +36,11 @@ class RAGService:
             citations.append(
                 Citation(
                     title=c.get("title", "Agricultural Extension Bulletin"),
-                    organization=c.get("organization", "Agricultural Extension Service"),
+                    organization=c.get(
+                        "organization", "Agricultural Extension Service"
+                    ),
                     content=c.get("content", ""),
-                    document_id=c.get("document_id", f"doc_{i+1}"),
+                    document_id=c.get("document_id", f"doc_{i + 1}"),
                     url=c.get("url", "https://icar.org.in/"),
                     provider="ChromaDB Corpus",
                     source_type="knowledge_document",

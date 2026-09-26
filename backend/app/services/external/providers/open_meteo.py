@@ -32,7 +32,9 @@ class OpenMeteoWeatherProvider(WeatherProvider):
 
         data = await transport.get_json(self.provider_id, self.base_url, params=params)
         if not isinstance(data, dict):
-            raise ProviderResponseError(self.provider_id, "Expected JSON object from Open-Meteo")
+            raise ProviderResponseError(
+                self.provider_id, "Expected JSON object from Open-Meteo"
+            )
 
         current = data.get("current", {})
         daily = data.get("daily", {})
@@ -112,7 +114,11 @@ class OpenMeteoWeatherProvider(WeatherProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            await transport.get_json(self.provider_id, self.base_url, params={"latitude": 0, "longitude": 0, "current": "temperature_2m"})
+            await transport.get_json(
+                self.provider_id,
+                self.base_url,
+                params={"latitude": 0, "longitude": 0, "current": "temperature_2m"},
+            )
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

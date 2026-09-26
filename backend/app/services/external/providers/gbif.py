@@ -37,7 +37,9 @@ class GBIFBiodiversityProvider(BiodiversityProvider):
             total = data.get("count", 0)
             results = data.get("results", [])
             for r in results:
-                species = r.get("species") or r.get("scientificName") or "Unknown Species"
+                species = (
+                    r.get("species") or r.get("scientificName") or "Unknown Species"
+                )
                 vernacular = r.get("vernacularName")
                 kingdom = r.get("kingdom", "General")
                 event_date = r.get("eventDate")
@@ -74,7 +76,9 @@ class GBIFBiodiversityProvider(BiodiversityProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            await transport.get_json(self.provider_id, self.base_url, params={"limit": 1})
+            await transport.get_json(
+                self.provider_id, self.base_url, params={"limit": 1}
+            )
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

@@ -89,7 +89,9 @@ async def generate_advisory(
     )
 
 
-@router.get("s", response_model=list[AdvisoryDetailResponse], summary="List Advisory History")
+@router.get(
+    "s", response_model=list[AdvisoryDetailResponse], summary="List Advisory History"
+)
 def list_advisories(
     farm_id: int | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
@@ -123,7 +125,11 @@ def list_advisories(
     return out
 
 
-@router.get("s/{advisory_id}", response_model=AdvisoryDetailResponse, summary="Get Advisory details by ID")
+@router.get(
+    "s/{advisory_id}",
+    response_model=AdvisoryDetailResponse,
+    summary="Get Advisory details by ID",
+)
 def get_advisory(advisory_id: int, session: Session = Depends(get_session)):
     r = session.get(AdvisoryRecord, advisory_id)
     if not r:

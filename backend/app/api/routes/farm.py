@@ -9,11 +9,18 @@ from app.services.farm_context import farm_context_service
 router = APIRouter(prefix="/farms", tags=["Farms"])
 
 
-@router.post("", response_model=FarmResponse, status_code=status.HTTP_201_CREATED, summary="Create a new Farm")
+@router.post(
+    "",
+    response_model=FarmResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new Farm",
+)
 async def create_farm(farm_in: FarmCreate, session: Session = Depends(get_session)):
     # Resolve geocoding to get coordinates
     try:
-        location = await farm_context_service.geocoding_provider.geocode(farm_in.location_query)
+        location = await farm_context_service.geocoding_provider.geocode(
+            farm_in.location_query
+        )
         lat, lon = location.latitude, location.longitude
         elevation = location.elevation_m
     except Exception:
@@ -37,7 +44,9 @@ async def create_farm(farm_in: FarmCreate, session: Session = Depends(get_sessio
     # Persist resolved location record
     farm_loc = FarmLocation(
         farm_id=farm.id,
-        display_name=location.display_name if 'location' in locals() else farm_in.location_query,
+        display_name=location.display_name
+        if "location" in locals()
+        else farm_in.location_query,
         latitude=lat,
         longitude=lon,
         elevation_m=elevation,
@@ -62,7 +71,11 @@ def get_farm(farm_id: int, session: Session = Depends(get_session)):
     return farm
 
 
-@router.get("/{farm_id}/context", response_model=FarmContextResponse, summary="Get aggregated Farm Context")
+@router.get(
+    "/{farm_id}/context",
+    response_model=FarmContextResponse,
+    summary="Get aggregated Farm Context",
+)
 async def get_farm_context(farm_id: int, session: Session = Depends(get_session)):
     farm = session.get(Farm, farm_id)
     if not farm:

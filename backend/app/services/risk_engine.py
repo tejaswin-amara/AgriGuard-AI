@@ -61,7 +61,9 @@ class RiskEngine:
                 name="fungal_pressure",
                 level=fungal_level,
                 score=fungal_score,
-                explanation="; ".join(fungal_reasons) if fungal_reasons else "Normal humidity and moisture levels",
+                explanation="; ".join(fungal_reasons)
+                if fungal_reasons
+                else "Normal humidity and moisture levels",
             )
         )
         if fungal_reasons:
@@ -77,7 +79,9 @@ class RiskEngine:
 
         if dry_days is not None and dry_days >= 7:
             water_score += 0.4
-            water_reasons.append(f"Extended dry spell ({dry_days} consecutive days without rain)")
+            water_reasons.append(
+                f"Extended dry spell ({dry_days} consecutive days without rain)"
+            )
 
         if rain_7d is not None and rain_7d < 5.0:
             water_score += 0.3
@@ -85,7 +89,9 @@ class RiskEngine:
 
         if et0 is not None and et0 >= 5.0:
             water_score += 0.2
-            water_reasons.append(f"High daily evapotranspiration demand (ET0 {et0:.1f}mm/day)")
+            water_reasons.append(
+                f"High daily evapotranspiration demand (ET0 {et0:.1f}mm/day)"
+            )
 
         water_score = min(1.0, round(water_score, 2))
         if water_score >= 0.7:
@@ -98,7 +104,9 @@ class RiskEngine:
                 name="water_stress",
                 level=water_level,
                 score=water_score,
-                explanation="; ".join(water_reasons) if water_reasons else "Adequate precipitation and soil moisture",
+                explanation="; ".join(water_reasons)
+                if water_reasons
+                else "Adequate precipitation and soil moisture",
             )
         )
         if water_reasons:
@@ -115,7 +123,9 @@ class RiskEngine:
 
         if vpd is not None and vpd >= 2.0:
             heat_score += 0.3
-            heat_reasons.append(f"High atmospheric Vapor Pressure Deficit ({vpd:.2f} kPa)")
+            heat_reasons.append(
+                f"High atmospheric Vapor Pressure Deficit ({vpd:.2f} kPa)"
+            )
 
         heat_score = min(1.0, round(heat_score, 2))
         if heat_score >= 0.6:
@@ -128,16 +138,26 @@ class RiskEngine:
                 name="heat_stress",
                 level=heat_level,
                 score=heat_score,
-                explanation="; ".join(heat_reasons) if heat_reasons else "Ambient temperatures within normal crop tolerance",
+                explanation="; ".join(heat_reasons)
+                if heat_reasons
+                else "Ambient temperatures within normal crop tolerance",
             )
         )
         if heat_reasons:
             explanations.extend(heat_reasons)
 
         overall_level = "low"
-        if fungal_level == "elevated" or water_level == "severe" or heat_level == "high":
+        if (
+            fungal_level == "elevated"
+            or water_level == "severe"
+            or heat_level == "high"
+        ):
             overall_level = "elevated"
-        elif fungal_level == "moderate" or water_level == "moderate" or heat_level == "mild":
+        elif (
+            fungal_level == "moderate"
+            or water_level == "moderate"
+            or heat_level == "mild"
+        ):
             overall_level = "moderate"
 
         return RiskContextSchema(

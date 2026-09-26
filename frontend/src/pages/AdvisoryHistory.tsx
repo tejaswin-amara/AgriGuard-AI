@@ -6,7 +6,9 @@ import type { AdvisoryDetailResponse, Farm } from "../types";
 export const AdvisoryHistory: React.FC = () => {
   const [advisories, setAdvisories] = useState<AdvisoryDetailResponse[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
-  const [selectedFarmId, setSelectedFarmId] = useState<number | undefined>(undefined);
+  const [selectedFarmId, setSelectedFarmId] = useState<number | undefined>(
+    undefined,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const loadAdvisories = useCallback(async () => {
@@ -30,16 +32,23 @@ export const AdvisoryHistory: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Advisory Audit Trail & History</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Advisory Audit Trail & History
+          </h1>
           <p className="text-xs text-gray-600 mt-0.5">
-            Complete audit trail of all generated grounded advisories with evidence citations and risk context.
+            Complete audit trail of all generated grounded advisories with
+            evidence citations and risk context.
           </p>
         </div>
 
         {farms.length > 0 && (
           <select
             value={selectedFarmId || ""}
-            onChange={(e) => setSelectedFarmId(e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) =>
+              setSelectedFarmId(
+                e.target.value ? Number(e.target.value) : undefined,
+              )
+            }
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold"
           >
             <option value="">All Farms</option>
@@ -58,12 +67,16 @@ export const AdvisoryHistory: React.FC = () => {
         </div>
       ) : advisories.length === 0 ? (
         <div className="p-8 text-center bg-white rounded-xl border border-gray-200 shadow-sm text-gray-500 text-sm">
-          No advisory history recorded yet. Run a Soil or Disease analysis to generate grounded advisories.
+          No advisory history recorded yet. Run a Soil or Disease analysis to
+          generate grounded advisories.
         </div>
       ) : (
         <div className="space-y-4">
           {advisories.map((adv) => (
-            <div key={adv.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-3">
+            <div
+              key={adv.id}
+              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-3"
+            >
               <div className="flex justify-between items-center border-b pb-3 text-xs">
                 <div className="flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded uppercase">

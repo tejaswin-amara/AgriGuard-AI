@@ -6,7 +6,9 @@ import type { Farm, SoilAdviseResponse } from "../types";
 
 export const Soil: React.FC = () => {
   const [farms, setFarms] = useState<Farm[]>([]);
-  const [selectedFarmId, setSelectedFarmId] = useState<number | undefined>(undefined);
+  const [selectedFarmId, setSelectedFarmId] = useState<number | undefined>(
+    undefined,
+  );
 
   const [nitrogen, setNitrogen] = useState<number>(40);
   const [phosphorus, setPhosphorus] = useState<number>(30);
@@ -51,10 +53,13 @@ export const Soil: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">Soil Health Analysis & Advisory</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Soil Health Analysis & Advisory
+        </h1>
         <p className="text-xs text-gray-600 mt-1">
-          Input chemical & physical soil parameters (NPK, pH, Moisture) to trigger XGBoost model classification,
-          environmental risk signals, and grounded RAG advisory.
+          Input chemical & physical soil parameters (NPK, pH, Moisture) to
+          trigger XGBoost model classification, environmental risk signals, and
+          grounded RAG advisory.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
@@ -66,7 +71,11 @@ export const Soil: React.FC = () => {
                 </label>
                 <select
                   value={selectedFarmId || ""}
-                  onChange={(e) => setSelectedFarmId(e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    setSelectedFarmId(
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   <option value="">-- Standalone / No Farm --</option>
@@ -95,7 +104,9 @@ export const Soil: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <label className="block text-xs font-bold text-slate-700">Nitrogen (N)</label>
+              <label className="block text-xs font-bold text-slate-700">
+                Nitrogen (N)
+              </label>
               <input
                 type="number"
                 min="0"
@@ -108,7 +119,9 @@ export const Soil: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <label className="block text-xs font-bold text-slate-700">Phosphorus (P)</label>
+              <label className="block text-xs font-bold text-slate-700">
+                Phosphorus (P)
+              </label>
               <input
                 type="number"
                 min="0"
@@ -121,7 +134,9 @@ export const Soil: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <label className="block text-xs font-bold text-slate-700">Potassium (K)</label>
+              <label className="block text-xs font-bold text-slate-700">
+                Potassium (K)
+              </label>
               <input
                 type="number"
                 min="0"
@@ -134,7 +149,9 @@ export const Soil: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <label className="block text-xs font-bold text-slate-700">pH Level</label>
+              <label className="block text-xs font-bold text-slate-700">
+                pH Level
+              </label>
               <input
                 type="number"
                 step="0.1"
@@ -148,7 +165,9 @@ export const Soil: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <label className="block text-xs font-bold text-slate-700">Moisture (%)</label>
+              <label className="block text-xs font-bold text-slate-700">
+                Moisture (%)
+              </label>
               <input
                 type="number"
                 min="0"
@@ -183,8 +202,12 @@ export const Soil: React.FC = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
             <div className="flex justify-between items-start border-b pb-3">
               <div>
-                <div className="text-xs uppercase font-bold text-gray-400">Predicted Soil Status</div>
-                <h2 className="text-2xl font-black text-emerald-900 mt-1">{result.predicted_category}</h2>
+                <div className="text-xs uppercase font-bold text-gray-400">
+                  Predicted Soil Status
+                </div>
+                <h2 className="text-2xl font-black text-emerald-900 mt-1">
+                  {result.predicted_category}
+                </h2>
               </div>
               <div className="text-right">
                 <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-1 rounded">
@@ -207,7 +230,9 @@ export const Soil: React.FC = () => {
           </div>
 
           {/* Risk Card */}
-          {result.risk_context && <RiskCard riskContext={result.risk_context} />}
+          {result.risk_context && (
+            <RiskCard riskContext={result.risk_context} />
+          )}
 
           {/* Evidence Citations */}
           <CitationList citations={result.citations} />

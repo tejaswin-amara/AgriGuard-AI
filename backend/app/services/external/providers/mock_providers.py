@@ -52,8 +52,20 @@ class MockWeatherProvider(WeatherProvider):
             soil_moisture_m3m3=0.32,
             gdd=14.5,
             forecast=[
-                ForecastDay(date="2026-09-27", min_temp_c=22.0, max_temp_c=31.0, precipitation_mm=2.0, et0_mm=4.1),
-                ForecastDay(date="2026-09-28", min_temp_c=21.5, max_temp_c=30.5, precipitation_mm=0.0, et0_mm=4.3),
+                ForecastDay(
+                    date="2026-09-27",
+                    min_temp_c=22.0,
+                    max_temp_c=31.0,
+                    precipitation_mm=2.0,
+                    et0_mm=4.1,
+                ),
+                ForecastDay(
+                    date="2026-09-28",
+                    min_temp_c=21.5,
+                    max_temp_c=30.5,
+                    precipitation_mm=0.0,
+                    et0_mm=4.3,
+                ),
             ],
             provenance=provenance,
         )

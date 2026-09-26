@@ -38,7 +38,9 @@ class NASAPowerClimateProvider(ClimateProvider):
 
         data = await transport.get_json(self.provider_id, self.base_url, params=params)
         if not isinstance(data, dict) or "properties" not in data:
-            raise ProviderResponseError(self.provider_id, "Expected NASA POWER properties structure")
+            raise ProviderResponseError(
+                self.provider_id, "Expected NASA POWER properties structure"
+            )
 
         parameter_data = data.get("properties", {}).get("parameter", {})
         t2m_dict = parameter_data.get("T2M", {})
@@ -48,18 +50,28 @@ class NASAPowerClimateProvider(ClimateProvider):
 
         dates_sorted = sorted(t2m_dict.keys())
         if not dates_sorted:
-            raise ProviderResponseError(self.provider_id, "No climate data points returned from NASA POWER")
+            raise ProviderResponseError(
+                self.provider_id, "No climate data points returned from NASA POWER"
+            )
 
         temps = [t2m_dict[d] for d in dates_sorted if t2m_dict[d] != -999]
-        precips = [precip_dict.get(d, 0) for d in dates_sorted if precip_dict.get(d, -999) != -999]
+        precips = [
+            precip_dict.get(d, 0)
+            for d in dates_sorted
+            if precip_dict.get(d, -999) != -999
+        ]
 
         mean_temp = round(sum(temps) / len(temps), 2) if temps else None
         min_temp = round(min(temps), 2) if temps else None
         max_temp = round(max(temps), 2) if temps else None
         total_precip = round(sum(precips), 2) if precips else 0.0
 
-        precip_last_7 = round(sum(precips[-7:]), 2) if len(precips) >= 7 else total_precip
-        precip_last_14 = round(sum(precips[-14:]), 2) if len(precips) >= 14 else total_precip
+        precip_last_7 = (
+            round(sum(precips[-7:]), 2) if len(precips) >= 7 else total_precip
+        )
+        precip_last_14 = (
+            round(sum(precips[-14:]), 2) if len(precips) >= 14 else total_precip
+        )
         precip_last_30 = total_precip
 
         dry_spell = 0
@@ -111,7 +123,15 @@ class NASAPowerClimateProvider(ClimateProvider):
             await transport.get_json(
                 self.provider_id,
                 self.base_url,
-                params={"parameters": "T2M", "community": "AG", "longitude": 0, "latitude": 0, "start": dt_str, "end": dt_str, "format": "JSON"},
+                params={
+                    "parameters": "T2M",
+                    "community": "AG",
+                    "longitude": 0,
+                    "latitude": 0,
+                    "start": dt_str,
+                    "end": dt_str,
+                    "format": "JSON",
+                },
                 timeout=5.0,
             )
             latency = (time.perf_counter() - start) * 1000

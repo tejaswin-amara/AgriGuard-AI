@@ -27,7 +27,9 @@ class AsyncHttpTransport:
     ):
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
-        headers = {"User-Agent": "AgriGuard-AI/2.0 (Agricultural Intelligence Platform; contact@agriguard.ai)"}
+        headers = {
+            "User-Agent": "AgriGuard-AI/2.0 (Agricultural Intelligence Platform; contact@agriguard.ai)"
+        }
         if default_headers:
             headers.update(default_headers)
         self.headers = headers
@@ -52,13 +54,19 @@ class AsyncHttpTransport:
             attempt += 1
             start_time = time.perf_counter()
             try:
-                async with httpx.AsyncClient(timeout=req_timeout, follow_redirects=True) as client:
+                async with httpx.AsyncClient(
+                    timeout=req_timeout, follow_redirects=True
+                ) as client:
                     response = await client.get(url, params=params, headers=req_headers)
                     duration_ms = (time.perf_counter() - start_time) * 1000
 
                     if response.status_code == 429:
                         retry_after = response.headers.get("Retry-After")
-                        wait_sec = int(retry_after) if retry_after and retry_after.isdigit() else backoff
+                        wait_sec = (
+                            int(retry_after)
+                            if retry_after and retry_after.isdigit()
+                            else backoff
+                        )
                         if attempt <= self.max_retries:
                             logger.warning(
                                 f"[{provider_id}] Rate limited (429). Retrying in {wait_sec}s (attempt {attempt}/{self.max_retries})"
@@ -66,7 +74,9 @@ class AsyncHttpTransport:
                             await asyncio.sleep(wait_sec)
                             backoff *= 2
                             continue
-                        raise ProviderRateLimitError(provider_id, "Rate limit exceeded", retry_after=wait_sec)
+                        raise ProviderRateLimitError(
+                            provider_id, "Rate limit exceeded", retry_after=wait_sec
+                        )
 
                     if response.status_code >= 500:
                         if attempt <= self.max_retries:
@@ -77,19 +87,27 @@ class AsyncHttpTransport:
                             backoff *= 2
                             continue
                         raise ProviderError(
-                            provider_id, f"Server error HTTP {response.status_code}", status_code=response.status_code
+                            provider_id,
+                            f"Server error HTTP {response.status_code}",
+                            status_code=response.status_code,
                         )
 
                     if response.status_code >= 400:
                         raise ProviderError(
-                            provider_id, f"Client error HTTP {response.status_code}: {response.text[:200]}", status_code=response.status_code
+                            provider_id,
+                            f"Client error HTTP {response.status_code}: {response.text[:200]}",
+                            status_code=response.status_code,
                         )
 
-                    logger.debug(f"[{provider_id}] HTTP GET {url} succeeded in {duration_ms:.1f}ms")
+                    logger.debug(
+                        f"[{provider_id}] HTTP GET {url} succeeded in {duration_ms:.1f}ms"
+                    )
                     try:
                         return response.json()
                     except Exception as e:
-                        raise ProviderResponseError(provider_id, f"Invalid JSON response: {e!s}")
+                        raise ProviderResponseError(
+                            provider_id, f"Invalid JSON response: {e!s}"
+                        )
 
             except httpx.TimeoutException:
                 if attempt <= self.max_retries:
@@ -99,7 +117,9 @@ class AsyncHttpTransport:
                     await asyncio.sleep(backoff)
                     backoff *= 2
                     continue
-                raise ProviderTimeoutError(provider_id, f"Request timed out after {req_timeout}s")
+                raise ProviderTimeoutError(
+                    provider_id, f"Request timed out after {req_timeout}s"
+                )
             except (httpx.NetworkError, httpx.ProtocolError) as e:
                 if attempt <= self.max_retries:
                     logger.warning(

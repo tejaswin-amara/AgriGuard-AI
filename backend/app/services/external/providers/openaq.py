@@ -27,7 +27,9 @@ class OpenAQAirQualityProvider(AirQualityProvider):
 
         pm25, pm10, no2, o3 = None, None, None, None
         try:
-            data = await transport.get_json(self.provider_id, self.base_url, params=params)
+            data = await transport.get_json(
+                self.provider_id, self.base_url, params=params
+            )
             if isinstance(data, dict) and data.get("results"):
                 sensors = data["results"][0].get("sensors", [])
                 for s in sensors:
@@ -66,7 +68,9 @@ class OpenAQAirQualityProvider(AirQualityProvider):
     async def health_check(self) -> ProviderStatusInfo:
         start = time.perf_counter()
         try:
-            await transport.get_json(self.provider_id, self.base_url, params={"limit": 1})
+            await transport.get_json(
+                self.provider_id, self.base_url, params={"limit": 1}
+            )
             latency = (time.perf_counter() - start) * 1000
             return ProviderStatusInfo(
                 provider_id=self.provider_id,

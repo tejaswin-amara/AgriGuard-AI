@@ -22,7 +22,10 @@ export const Layout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2 font-bold text-xl text-white">
+              <Link
+                to="/"
+                className="flex items-center gap-2 font-bold text-xl text-white"
+              >
                 <span className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-black">
                   🌱
                 </span>
@@ -82,10 +85,13 @@ export const Layout: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            &copy; 2026 AgriGuard AI — Context-Aware Agricultural Intelligence & Decision Support
+            &copy; 2026 AgriGuard AI — Context-Aware Agricultural Intelligence &
+            Decision Support
           </div>
           <div className="flex items-center gap-4 text-slate-600">
-            <span>Powered by Open-Meteo • NASA POWER • OpenStreetMap • IBM WatsonX</span>
+            <span>
+              Powered by Open-Meteo • NASA POWER • OpenStreetMap • IBM WatsonX
+            </span>
           </div>
         </div>
       </footer>
