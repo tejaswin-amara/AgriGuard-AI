@@ -25,16 +25,17 @@ class AdvisoryRetriever:
         results = self.collection.query(query_texts=[query], n_results=n_results)
 
         citations = []
-        if results["documents"] and len(results["documents"]) > 0:
+        if results and results.get("documents") and len(results["documents"]) > 0:
             for i, doc in enumerate(results["documents"][0]):
-                meta = results["metadatas"][0][i] if results["metadatas"] else {}
+                meta = results["metadatas"][0][i] if results.get("metadatas") and i < len(results["metadatas"][0]) else {}
 
                 citations.append(
                     {
-                        "title": meta.get("title", "Unknown Source"),
-                        "organization": meta.get("organization", "Unknown"),
+                        "title": meta.get("title") or "Untitled Document",
+                        "organization": meta.get("organization") or "Unknown Organization",
                         "content": doc,
-                        "document_id": meta.get("id", f"doc_{i}"),
+                        "document_id": meta.get("id") or f"doc_{i}",
+                        "url": meta.get("url"),  # None if missing; no fake fallback URL
                     }
                 )
         return citations

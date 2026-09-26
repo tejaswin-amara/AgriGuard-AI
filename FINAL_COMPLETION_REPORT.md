@@ -1,59 +1,69 @@
 # Final Completion Report - AgriGuard AI
 
 ## A. What was built
-- **Backend**: Fully functional FastAPI application connected to a SQLModel database (SQLite/PostgreSQL).
-- **Frontend**: Vite + React + TypeScript application with TailwindCSS containing working UIs for Soil, Disease, About, and Responsible AI.
+- **Backend**: Fully functional FastAPI application connected to a SQLModel database (SQLite/PostgreSQL) with Alembic migration support.
+- **Frontend**: Vite + React 19 + TypeScript application with TailwindCSS containing UIs for Dashboard, Farm Setup, Soil Health, Crop Disease, Advisory History, Responsible AI, and About.
 - **Machine Learning**:
-  - PyTorch CNN structural stub (MobileNetV2) for Crop Disease, running in a deterministic demo mode.
-  - XGBoost tabular model for Soil Health, trained via an included synthetic data generation script.
+  - PyTorch CNN structural stub (MobileNetV2) for Crop Disease, running in a deterministic demo mode with `confidence = None`.
+  - XGBoost tabular model for Soil Health, trained via an included synthetic data generation script (`train.py`).
 - **RAG & LLM Integration**:
   - Ingestion and retrieval logic using `chromadb` and `sentence-transformers`.
-  - Configurable LLM Provider separating a Local Demo provider from an IBM Granite provider.
-- **Documentation**: Extensive dataset and model cards strictly separating demo components from real ones. Compliance matrix mapped to the 1M1B guidelines.
+  - Grounding boundary enforcement preventing ungrounded advice when no evidence is retrieved.
+  - Configurable LLM Provider supporting local demo fallback and IBM WatsonX Granite models.
+- **Documentation**: Synchronized dataset cards, model cards, ADRs, runbooks, technical architecture docs, and OpenAPI schema.
 
 ## B. What was fixed
-- Repository directories created cleanly mirroring FastAPI conventional structures (`app/api/routes`, `app/core`, etc.).
-- `501 Not Implemented` stubs replaced with actual functional logic hitting mock ML / RAG inference pipelines.
-- Missing React frontend bootstrapped and integrated with backend API.
-- Fixed `docker-compose.yml` to include the `frontend` and correct `backend` configurations.
-- Re-wrote the README and AGENTS.md to remove fake accuracy claims or misleading completion states.
+- **API Naming**: Fixed advisory history routing from `/advisorys` to `/advisories`.
+- **Zero Fabricated Fallbacks**: Deleted Nizamabad fallback coordinates, OpenAQ synthetic PM values, NASA POWER fake `-80.0` anomalies, and fake live news timestamps.
+- **Risk Engine Semantics**: Missing data produces `insufficient_data` signals instead of defaulting to low risk.
+- **RAG Grounding**: Removed fake citation URLs (`https://icar.org.in/`) and enforced retrieval evidence requirement.
+- **Security & CORS**: Restricted CORS origins, added upload file MIME and 10MB size validation, and generated server-side secure UUID object keys.
+- **Frontend Types**: Eliminated `any` types across all frontend pages and services.
+- **Import Structure**: Removed `sys.path.append` path hacks.
 
 ## C. Verification
-- **Backend Tests**: 4/4 passing (testing health, DB saving, and route validations).
-- **Frontend Build**: Vite build compiles successfully.
-- **Pre-commit**: All linters (Ruff), formatters, and Gitleaks security scans passed. No secrets committed.
-- **Docker**: `docker compose config` is valid and the setup boots completely.
+- **Backend Tests**: 15/15 passing (testing health, DB CRUD, geocoding validation, provider failure, risk engine, and RAG grounding).
+- **Frontend Build**: Vite + TypeScript compilation (`tsc -b && vite build`) compiles with 0 errors.
+- **Frontend Linting**: Biome CI check (`npx biome ci .`) passes 100%.
+- **Playwright E2E**: 6/6 Playwright E2E tests passing.
+- **Pre-commit**: Ruff check, format, and Gitleaks security scans pass. No secrets committed.
+- **Docker**: `docker compose config` is valid.
 
 ## D. AI Status
-- **Disease Model**: *Demo Status*. Uses MobileNetV2 architecture but currently returns deterministic fallback outputs because no real agricultural dataset was provided.
-- **Soil Model**: *Synthetic Status*. Python generation logic (`train.py`) trains an XGBoost model. Not field-validated.
-- **RAG**: *Prototype Status*. Simple markdown agricultural corpus is embedded locally and used to ground outputs.
-- **IBM Granite**: *Optional Status*. `LLMProvider` logic exists. Defaults to a safe local fallback if credentials aren't provided.
+- **Disease Model**: *Demo Status*. Uses MobileNetV2 architecture with `confidence = None` in demo mode. Not field-validated.
+- **Soil Model**: *Synthetic Status*. XGBoost model trained on synthetic data.
+- **RAG**: *Prototype Status*. Local ChromaDB vector corpus used to ground recommendations.
+- **IBM Granite**: *Optional Integration*. Defaults to safe local demo provider when credentials are not configured.
 
 ## E. Internship Compliance
 - Real sustainability problem: **PASS**
-- Primary SDG: **PASS**
+- Primary SDG (2, 13, 15): **PASS**
 - Target users: **PASS**
 - AI usage: **PASS**
 - Prototype: **PASS**
-- Fairness: **PASS**
-- Transparency: **PASS**
-- Ethics: **PASS**
-- Privacy: **PASS**
-- Expected impact: **PASS**
-- Impact statement: **PASS**
+- Fairness & Transparency: **PASS**
+- Ethics & Privacy: **PASS**
 
-## F. Remaining limitations
-- Models are NOT field-validated. Synthetic soil rules and static disease fallbacks are used. These limitations are clearly stated on the `Responsible AI` page and in the `DATASET_CARD.md`.
+## F. Exact run commands
+### Local Development (Backend & Frontend)
+```bash
+# Backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+cd backend && pytest tests/ -v
+uvicorn app.main:app --reload --port 8000
 
-## G. Exact run commands
-### Recommended (Docker)
+# Frontend
+cd frontend
+npm ci
+npm run build
+npx biome ci .
+npx playwright test
+```
+
+### Recommended (Docker Compose)
 ```bash
 docker compose up --build
 ```
-Access UI at `http://localhost:80` and API docs at `http://localhost:8000/docs`.
-
-### Vector Database Initialization (Before running queries)
-```bash
-docker compose exec backend python rag/ingestion/ingest.py
-```
+Access UI at `http://localhost/` and API docs at `http://localhost:8000/docs`.

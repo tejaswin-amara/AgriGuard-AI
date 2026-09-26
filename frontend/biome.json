@@ -5,7 +5,6 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "off",
         "noArrayIndexKey": "off"
       },
       "a11y": {
@@ -31,7 +30,12 @@
     }
   },
   "files": {
-    "ignore": ["src/index.css", "dist/**"]
+    "ignore": [
+      "src/index.css",
+      "dist/**",
+      "test-results/**",
+      "playwright-report/**"
+    ]
   },
   "overrides": [
     {

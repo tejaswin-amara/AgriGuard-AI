@@ -108,3 +108,31 @@ def test_news_route():
     assert resp.status_code == 200
     news = resp.json()
     assert "articles" in news
+
+
+def test_cors_headers_restricted():
+    # Allowed origin returns CORS headers
+    resp_allowed = client.options(
+        "/api/v1/health",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert (
+        resp_allowed.headers.get("access-control-allow-origin")
+        == "http://localhost:5173"
+    )
+
+    # Disallowed origin does NOT return CORS header
+    resp_disallowed = client.options(
+        "/api/v1/health",
+        headers={
+            "Origin": "http://malicious-domain.com",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert (
+        resp_disallowed.headers.get("access-control-allow-origin")
+        != "http://malicious-domain.com"
+    )

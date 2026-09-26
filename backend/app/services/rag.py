@@ -1,10 +1,3 @@
-import os
-import sys
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-)
-
 from rag.retrieval.retrieve import AdvisoryRetriever
 
 from app.schemas import Citation
@@ -24,6 +17,15 @@ class RAGService:
     ) -> dict:
         raw_citations = self.retriever.retrieve(query, n_results=3)
 
+        if not raw_citations:
+            return {
+                "recommendation": "No authoritative agricultural extension evidence was retrieved for this query. "
+                "Please consult a certified local agronomist or extension officer for field guidance.",
+                "provider": "rag-grounding-boundary",
+                "citations": [],
+                "limitation": "Insufficient retrieved evidence to make a grounded recommendation.",
+            }
+
         citations: list[Citation] = []
         context_text = ""
 
@@ -35,19 +37,18 @@ class RAGService:
         for i, c in enumerate(raw_citations):
             citations.append(
                 Citation(
-                    title=c.get("title", "Agricultural Extension Bulletin"),
-                    organization=c.get(
-                        "organization", "Agricultural Extension Service"
-                    ),
+                    title=c.get("title") or "Agricultural Extension Bulletin",
+                    organization=c.get("organization") or "Unknown Organization",
                     content=c.get("content", ""),
-                    document_id=c.get("document_id", f"doc_{i + 1}"),
-                    url=c.get("url", "https://icar.org.in/"),
+                    document_id=c.get("document_id") or f"doc_{i + 1}",
+                    url=c.get("url"),  # None if missing, never fabricate URLs
                     provider="ChromaDB Corpus",
                     source_type="knowledge_document",
                     data_quality="OFFICIAL_OBSERVATION",
                 )
             )
-            context_text += f"\nSource {i + 1} ({c['title']}): {c['content']}\n"
+            title_str = c.get("title") or "Extension Document"
+            context_text += f"\n--- RETRIEVED DOCUMENT {i + 1} ({title_str}) ---\n{c.get('content', '')}\n--- END DOCUMENT {i + 1} ---\n"
 
         response = self.llm.generate(context=context_text, query=query)
 

@@ -26,7 +26,7 @@ export const FarmSetup: React.FC = () => {
     try {
       const list = await farmService.listFarms();
       setFarms(list);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to load farms", err);
     }
   };
@@ -38,10 +38,14 @@ export const FarmSetup: React.FC = () => {
     try {
       const loc = await locationService.geocode(locationQuery);
       setGeocoded(loc);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Geocoding failed. Check location query.";
       setMessage({
         type: "error",
-        text: "Geocoding failed. Check location query.",
+        text: msg,
       });
     } finally {
       setIsGeocoding(false);
@@ -70,8 +74,9 @@ export const FarmSetup: React.FC = () => {
       setPlotId("");
       setGeocoded(null);
       loadFarms();
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to create farm." });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to create farm.";
+      setMessage({ type: "error", text: msg });
     } finally {
       setIsSubmitting(false);
     }

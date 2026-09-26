@@ -1,3 +1,4 @@
+import type React from "react";
 import { useEffect, useState } from "react";
 import { CitationList } from "../components/CitationList";
 import { RiskCard } from "../components/RiskCard";
@@ -43,8 +44,12 @@ export const Soil: React.FC = () => {
         farm_id: selectedFarmId,
       });
       setResult(res);
-    } catch (err: any) {
-      setError("Failed to run soil health analysis.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to run soil health analysis.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +219,10 @@ export const Soil: React.FC = () => {
                   SYNTHETIC DEMO MODEL
                 </span>
                 <div className="text-[11px] text-gray-500 mt-1">
-                  Confidence: {((result.confidence || 0.99) * 100).toFixed(0)}%
+                  Confidence:{" "}
+                  {result.confidence != null
+                    ? `${(result.confidence * 100).toFixed(0)}%`
+                    : "N/A (Uncalibrated)"}
                 </div>
               </div>
             </div>

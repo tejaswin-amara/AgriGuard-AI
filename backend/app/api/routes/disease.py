@@ -1,3 +1,6 @@
+import uuid
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlmodel import Session
 
@@ -8,6 +11,8 @@ from app.services.disease import analyze_disease_image
 from app.services.farm_context import farm_context_service
 
 router = APIRouter(prefix="/disease", tags=["Disease"])
+
+ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/pjpeg"}
 
 
 @router.post(
@@ -30,19 +35,21 @@ async def analyze_disease(
             detail="Missing image file. Please upload an image file under parameter 'file' or 'image'.",
         )
 
-    if not upload_file.content_type or not upload_file.content_type.startswith(
-        "image/"
+    if (
+        not upload_file.content_type
+        or upload_file.content_type.lower() not in ALLOWED_MIME_TYPES
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file format. Please upload an image file (e.g. JPEG, PNG).",
+            detail="Invalid image format. Supported formats are JPEG, PNG, and WebP.",
         )
 
     # Read image file bytes with 10MB upload limit
     image_bytes = await upload_file.read()
     if len(image_bytes) > 10 * 1024 * 1024:
         raise HTTPException(
-            status_code=400, detail="File size exceeds maximum 10MB limit."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds maximum 10MB limit.",
         )
 
     # 1. Fetch farm context if farm_id provided
@@ -53,7 +60,8 @@ async def analyze_disease(
         if farm:
             fctx = await farm_context_service.get_farm_context(session, farm)
             risk_ctx = fctx.risk_context
-            weather_summary = f"Temp: {fctx.weather.temperature_c}°C, Humidity: {fctx.weather.humidity_pct}%, Rainfall: {fctx.weather.rainfall_mm}mm"
+            if fctx.weather:
+                weather_summary = f"Temp: {fctx.weather.temperature_c}°C, Humidity: {fctx.weather.humidity_pct}%, Rainfall: {fctx.weather.rainfall_mm}mm"
 
     # 2. Perform ML disease analysis
     try:
@@ -64,13 +72,18 @@ async def analyze_disease(
             weather_summary=weather_summary,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    # 3. Persist analysis record
+    # 3. Generate server-side secure object key
+    raw_ext = Path(upload_file.filename or "image.jpg").suffix.lower()
+    ext = raw_ext if raw_ext in (".jpg", ".jpeg", ".png", ".webp") else ".jpg"
+    secure_filename = f"leaf_{uuid.uuid4().hex}{ext}"
+
+    # 4. Persist analysis record
     record = DiseaseAnalysis(
         farm_id=farm_id,
         crop=crop,
-        image_path=upload_file.filename or "uploaded_leaf.jpg",
+        image_path=f"uploads/{secure_filename}",
         predicted_class=analysis_result["predicted_class"],
         confidence=analysis_result["confidence"],
         model_version=analysis_result["model_version"],

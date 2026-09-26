@@ -48,8 +48,12 @@ export const Disease: React.FC = () => {
         selectedFarmId,
       );
       setResult(res);
-    } catch (err: any) {
-      setError("Failed to analyze crop leaf image.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to analyze crop leaf image.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -179,7 +183,10 @@ export const Disease: React.FC = () => {
                   DEMO MODEL
                 </span>
                 <div className="text-[11px] text-gray-500 mt-1">
-                  Confidence: {(result.confidence * 100).toFixed(0)}%
+                  Confidence:{" "}
+                  {result.confidence != null
+                    ? `${(result.confidence * 100).toFixed(0)}%`
+                    : "N/A (Demo Output)"}
                 </div>
               </div>
             </div>

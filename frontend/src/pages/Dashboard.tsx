@@ -4,7 +4,7 @@ import { FreshnessBadge } from "../components/FreshnessBadge";
 import { ProvenanceBadge } from "../components/ProvenanceBadge";
 import { RiskCard } from "../components/RiskCard";
 import { farmService } from "../services/api";
-import type { Farm, FarmContextResponse } from "../types";
+import type { Farm, FarmContextResponse, FreshnessState } from "../types";
 
 export const Dashboard: React.FC = () => {
   const [farms, setFarms] = useState<Farm[]>([]);
@@ -24,7 +24,7 @@ export const Dashboard: React.FC = () => {
       if (list.length > 0) {
         setSelectedFarmId(list[0].id);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
     }
   };
@@ -41,8 +41,12 @@ export const Dashboard: React.FC = () => {
     try {
       const ctx = await farmService.getFarmContext(farmId);
       setContext(ctx);
-    } catch (err: any) {
-      setError("Failed to fetch farm context data.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch farm context data.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -51,9 +55,9 @@ export const Dashboard: React.FC = () => {
   if (farms.length === 0) {
     return (
       <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm text-center space-y-4">
-        <h2 className="text-xl font-bold text-gray-900">
-          Welcome to AgriGuard AI
-        </h2>
+        <h1 className="text-2xl font-bold text-gray-900">
+          AgriGuard AI — Welcome
+        </h1>
         <p className="text-sm text-gray-600 max-w-lg mx-auto">
           To get started, please setup your first farm plot to enable
           context-aware weather, climate, soil, and crop disease intelligence.
@@ -121,7 +125,12 @@ export const Dashboard: React.FC = () => {
                 <h2 className="text-lg font-bold">
                   {context.location.display_name}
                 </h2>
-                <FreshnessBadge state={context.freshness.weather} />
+                <FreshnessBadge
+                  state={
+                    (context.freshness.weather as FreshnessState) ||
+                    "unavailable"
+                  }
+                />
               </div>
               <div className="text-xs text-emerald-200 mt-1 flex gap-4 font-mono">
                 <span>Lat: {context.location.latitude.toFixed(4)}°</span>
@@ -133,10 +142,12 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            <ProvenanceBadge
-              provider={context.weather.provenance.provider_name}
-              quality={context.weather.provenance.data_quality}
-            />
+            {context.weather && (
+              <ProvenanceBadge
+                provider={context.weather.provenance.provider_name}
+                quality={context.weather.provenance.data_quality}
+              />
+            )}
           </div>
 
           {/* Live Environmental Metrics Cards */}
@@ -146,7 +157,9 @@ export const Dashboard: React.FC = () => {
                 Temperature
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {context.weather.temperature_c ?? "--"}°C
+                {context.weather?.temperature_c != null
+                  ? `${context.weather.temperature_c}°C`
+                  : "UNAVAILABLE"}
               </div>
               <div className="text-[10px] text-gray-400 mt-1">Ambient 2m</div>
             </div>
@@ -156,7 +169,9 @@ export const Dashboard: React.FC = () => {
                 Humidity
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {context.weather.humidity_pct ?? "--"}%
+                {context.weather?.humidity_pct != null
+                  ? `${context.weather.humidity_pct}%`
+                  : "UNAVAILABLE"}
               </div>
               <div className="text-[10px] text-gray-400 mt-1">
                 Relative Humidity
@@ -168,7 +183,9 @@ export const Dashboard: React.FC = () => {
                 Precipitation
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {context.weather.rainfall_mm ?? 0} mm
+                {context.weather?.rainfall_mm != null
+                  ? `${context.weather.rainfall_mm} mm`
+                  : "UNAVAILABLE"}
               </div>
               <div className="text-[10px] text-gray-400 mt-1">Current Rain</div>
             </div>
@@ -178,7 +195,9 @@ export const Dashboard: React.FC = () => {
                 Soil Moisture
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {context.weather.soil_moisture_m3m3 ?? "--"} m³/m³
+                {context.weather?.soil_moisture_m3m3 != null
+                  ? `${context.weather.soil_moisture_m3m3} m³/m³`
+                  : "UNAVAILABLE"}
               </div>
               <div className="text-[10px] text-gray-400 mt-1">Upper 0-1cm</div>
             </div>
@@ -188,7 +207,9 @@ export const Dashboard: React.FC = () => {
                 Evapotranspiration
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {context.weather.et0_mm ?? "--"} mm
+                {context.weather?.et0_mm != null
+                  ? `${context.weather.et0_mm} mm`
+                  : "UNAVAILABLE"}
               </div>
               <div className="text-[10px] text-gray-400 mt-1">
                 Reference ET0
@@ -200,7 +221,9 @@ export const Dashboard: React.FC = () => {
                 VPD
               </div>
               <div className="text-2xl font-bold text-gray-900 mt-1">
-                {context.weather.vpd_kpa ?? "--"} kPa
+                {context.weather?.vpd_kpa != null
+                  ? `${context.weather.vpd_kpa} kPa`
+                  : "UNAVAILABLE"}
               </div>
               <div className="text-[10px] text-gray-400 mt-1">
                 Vapour Pressure Deficit
@@ -218,25 +241,36 @@ export const Dashboard: React.FC = () => {
                 <h3 className="font-bold text-gray-900 text-sm">
                   7-Day Agroclimate Forecast
                 </h3>
-                <FreshnessBadge state={context.freshness.weather} />
+                <FreshnessBadge
+                  state={
+                    (context.freshness.weather as FreshnessState) ||
+                    "unavailable"
+                  }
+                />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                {context.weather.forecast.map((f, i) => (
-                  <div
-                    key={i}
-                    className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-center space-y-1"
-                  >
-                    <div className="text-[11px] font-bold text-slate-700">
-                      {f.date.slice(5)}
+                {context.weather?.forecast ? (
+                  context.weather.forecast.map((f, i) => (
+                    <div
+                      key={i}
+                      className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-center space-y-1"
+                    >
+                      <div className="text-[11px] font-bold text-slate-700">
+                        {f.date.slice(5)}
+                      </div>
+                      <div className="text-xs font-semibold text-slate-900">
+                        {f.max_temp_c}° / {f.min_temp_c}°
+                      </div>
+                      <div className="text-[10px] text-blue-700 bg-blue-50 px-1 py-0.5 rounded">
+                        ☔ {f.precipitation_mm ?? 0}mm
+                      </div>
                     </div>
-                    <div className="text-xs font-semibold text-slate-900">
-                      {f.max_temp_c}° / {f.min_temp_c}°
-                    </div>
-                    <div className="text-[10px] text-blue-700 bg-blue-50 px-1 py-0.5 rounded">
-                      ☔ {f.precipitation_mm ?? 0}mm
-                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full text-xs text-gray-400 py-4 text-center">
+                    Forecast data unavailable
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -245,37 +279,48 @@ export const Dashboard: React.FC = () => {
                 <h3 className="font-bold text-gray-900 text-sm">
                   Historical Climate Baseline
                 </h3>
-                <FreshnessBadge state={context.freshness.climate} />
+                <FreshnessBadge
+                  state={
+                    (context.freshness.climate as FreshnessState) ||
+                    "unavailable"
+                  }
+                />
               </div>
-              <div className="text-xs space-y-2 text-gray-700">
-                <div className="flex justify-between">
-                  <span>30-Day Total Rain:</span>
-                  <span className="font-bold">
-                    {context.climate.total_precipitation_mm} mm
-                  </span>
+              {context.climate ? (
+                <div className="text-xs space-y-2 text-gray-700">
+                  <div className="flex justify-between">
+                    <span>30-Day Total Rain:</span>
+                    <span className="font-bold">
+                      {context.climate.total_precipitation_mm ?? "--"} mm
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>7-Day Rain Sum:</span>
+                    <span className="font-bold">
+                      {context.climate.rainfall_7d_mm ?? "--"} mm
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Dry Spell Days:</span>
+                    <span className="font-bold">
+                      {context.climate.dry_spell_days ?? "--"} days
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Cumulative GDD:</span>
+                    <span className="font-bold">
+                      {context.climate.gdd_cumulative ?? "--"} °C-days
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t text-[11px] text-gray-500">
+                    Source: {context.climate.provenance.provider_name}
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>7-Day Rain Sum:</span>
-                  <span className="font-bold">
-                    {context.climate.rainfall_7d_mm} mm
-                  </span>
+              ) : (
+                <div className="text-xs text-gray-400 py-4 text-center">
+                  Climate baseline data unavailable
                 </div>
-                <div className="flex justify-between">
-                  <span>Dry Spell Days:</span>
-                  <span className="font-bold">
-                    {context.climate.dry_spell_days} days
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Cumulative GDD:</span>
-                  <span className="font-bold">
-                    {context.climate.gdd_cumulative} °C-days
-                  </span>
-                </div>
-                <div className="pt-2 border-t text-[11px] text-gray-500">
-                  Source: {context.climate.provenance.provider_name}
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
