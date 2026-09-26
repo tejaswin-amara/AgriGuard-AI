@@ -1,6 +1,6 @@
 import type React from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 export const Layout: React.FC = () => {
   const { i18n } = useTranslation();
