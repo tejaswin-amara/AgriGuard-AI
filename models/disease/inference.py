@@ -1,5 +1,6 @@
-from PIL import Image
 import io
+
+from PIL import Image
 
 
 class DiseaseInference:
@@ -30,5 +31,5 @@ class DiseaseInference:
                 "is_demo": self.is_demo,
                 "limitation": "Demo output. Not a real agricultural diagnosis.",
             }
-        except Exception as e:
-            raise ValueError(f"Invalid image: {str(e)}")
+        except Exception as e:  # noqa: BLE001
+            raise ValueError(f"Invalid image: {e!s}")
