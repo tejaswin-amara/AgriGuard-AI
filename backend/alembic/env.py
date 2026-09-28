@@ -16,8 +16,8 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 # Import all models so SQLModel.metadata has all table definitions registered
-import app.models  # noqa: F401
-from app.core.config import settings
+import app.models  # noqa: F401, E402
+from app.core.config import settings  # noqa: E402
 
 config = context.config
 
