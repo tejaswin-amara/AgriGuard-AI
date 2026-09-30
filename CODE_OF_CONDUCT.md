@@ -1,26 +1,30 @@
 # Code of Conduct
 
-## Our Pledge
+## Our pledge
 
-We want AgriGuard AI to be a welcoming project to contribute to — regardless of experience level, background, or how someone found their way here.
+We want AgriGuard AI to be a respectful and constructive project space.
 
-## Expected Behavior
+## Expected behavior
 
-- Be respectful in discussions, reviews, and issues
-- Give and accept constructive feedback gracefully
-- Focus criticism on the work, not the person
-- Assume good faith
+- Be respectful in issues, pull requests, reviews, and discussions.
+- Critique code, documentation, or designs rather than people.
+- Give specific, constructive feedback.
+- Assume good faith while still addressing harmful behavior clearly.
+- Protect private information shared by contributors.
 
-## Unacceptable Behavior
+## Unacceptable behavior
 
-- Harassment, personal attacks, or discriminatory language or jokes
-- Publishing others' private information without consent
-- Sustained disruption of discussions or reviews
-
-## Enforcement
-
-Instances of unacceptable behavior can be reported to the project maintainer at tejaswinamara@klh.edu.in. Reports will be reviewed and addressed as appropriate, which may include a warning or removal from the project.
+- Harassment or intimidation.
+- Personal attacks or discriminatory comments.
+- Publishing private information without consent.
+- Deliberate disruption of project collaboration.
+- Misrepresenting prototype outputs as validated agricultural evidence.
 
 ## Scope
 
-This applies within all project spaces — issues, pull requests, discussions — and anywhere else someone is representing the project.
+This applies to project issues, pull requests, discussions, commits, documentation, and other spaces where someone represents the project.
+
+## Enforcement
+
+Report conduct concerns privately to the project maintainer using the contact information published in the repository profile. Security vulnerabilities should follow `SECURITY.md` instead.
+
