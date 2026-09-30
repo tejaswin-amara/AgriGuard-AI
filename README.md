@@ -306,7 +306,8 @@ pip install -r backend/requirements.txt
 
 Run backend checks:
 
-```cd backend
+```bash
+cd backend
 ruff check .
 ruff format --check .
 DATABASE_URL=sqlite:///./test.db PYTHONPATH=. pytest tests/ -v
