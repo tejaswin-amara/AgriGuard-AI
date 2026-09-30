@@ -1,44 +1,54 @@
-# Operational Runbook: External Provider Outages & Degradation
+# Runbook — External Provider Outages & Degradation
 
 ## Overview
 
-AgriGuard AI integrates multiple public API providers (Open-Meteo, NASA POWER, Nominatim, OpenAQ, Open Topo Data, GBIF). This runbook outlines diagnostic steps and operational recovery when external providers experience degradation or downtime.
+AgriGuard AI integrates several external provider adapters. A provider may fail independently without necessarily making the entire farm-context request fail.
 
-## Automatic Resilience Behavior
+## Provider classes
 
-1. **Required Core Providers (Open-Meteo, NASA POWER, Nominatim)**:
-   - Shared transport retries transient errors (5xx, 429) up to 2 times with exponential backoff.
-   - If live calls fail, `ProviderCache` serves stale cached data up to 4x TTL labeled as `STALE`.
-   - If no cached data exists, deterministic mock fallbacks fill required structure to prevent application crash.
+| Provider | Required flag | Capability |
+|---|---|---|
+| Open-Meteo | Required | Weather |
+| NASA POWER | Required | Historical climate |
+| Nominatim | Required | Geocoding |
+| OpenAQ | Optional | Air quality |
+| Open Topo Data | Optional | Elevation |
+| GBIF | Optional | Biodiversity |
+| Curated agriculture news | Optional | Demo news/advisory |
 
-2. **Optional Providers (OpenAQ, Open Topo Data, GBIF, News)**:
-   - Executed with `return_exceptions=True`.
-   - Outages set status to `UNAVAILABLE` without impacting disease classification or soil advisory.
+## Automatic behavior
 
-## Health Diagnostics
+### Cache
 
-Check provider statuses via REST API:
+The provider cache can return cached or stale values according to capability-specific TTLs.
+
+### Farm context
+
+Farm-context provider calls use concurrent execution with exception isolation. Optional failures become missing context rather than terminating the whole aggregation.
+
+### Prototype fallbacks
+
+Current source code contains deterministic fallbacks for:
+
+- weather;
+- climate;
+- OpenAQ air-quality values;
+- farm creation when geocoding fails.
+
+These values are synthetic. They must be labeled or removed before any production deployment.
+
+## Diagnostics
 
 ```http
 GET /api/v1/providers/health
+GET /api/v1/health
 ```
 
-Sample Response:
+## Recovery
 
-```json
-[
-  {
-    "provider_id": "open_meteo",
-    "name": "Open-Meteo Weather API",
-    "category": "weather",
-    "status": "healthy",
-    "latency_ms": 142.5
-  }
-]
-```
+1. Confirm the upstream service is reachable.
+2. Inspect the provider error message and freshness state.
+3. Verify whether cached data exists.
+4. Restore the upstream dependency or update the adapter.
+5. Re-run the corresponding provider and API tests.
 
-## Manual Actions
-
-If a provider endpoint is permanently retired or URL changes:
-1. Update `base_url` in the specific adapter inside `backend/app/services/external/providers/`.
-2. Re-run backend test suite: `PYTHONPATH=backend pytest`.
