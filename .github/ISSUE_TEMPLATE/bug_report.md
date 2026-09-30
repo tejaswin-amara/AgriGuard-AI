@@ -1,24 +1,40 @@
 ---
 name: Bug report
-about: Something isn't working as expected
+about: Report a reproducible problem in the AgriGuard AI prototype
 title: "[BUG] "
 labels: bug
 ---
 
-**Describe the bug**
-A clear description of what's wrong.
+## Problem
 
-**Steps to reproduce**
+Describe what is failing and which user/API flow is affected.
+
+## Steps to reproduce
+
 1.
 2.
 3.
 
-**Expected behavior**
-What you expected to happen instead.
+## Expected behavior
 
-**Environment**
-- Component: [backend / frontend / model / docs]
-- Version or commit:
+What should happen?
 
-**Additional context**
-Anything else relevant — logs, screenshots, etc.
+## Actual behavior
+
+What happens instead?
+
+## Environment
+
+- Component: [backend / frontend / ML / RAG / provider / Docker / CI / docs]
+- Commit or version:
+- OS:
+- Browser (if applicable):
+
+## Prototype/data context
+
+- Does the issue involve synthetic, mock, cached, stale, or unavailable data?
+- Could the issue make prototype output appear to be real-world evidence?
+
+## Evidence
+
+Include relevant logs, API responses, screenshots, or a minimal reproduction. Remove secrets and personal data.
