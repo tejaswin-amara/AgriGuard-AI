@@ -1,24 +1,83 @@
-# Data & Model Versioning
+# Data & Model Artifacts
 
-Neither `CLAUDE.md` nor `full-stack-dev-github-repos.md` covers this — both are scoped to the web pipeline plus a brief ML-tooling mention (MLflow, Airflow) for *tracking* experiments, not for *storing* the large binary files training actually produces. Filed here since it's a real gap, not an oversight to leave silent.
+> **Current-state reference:** 2026-09-30
 
-## The problem
+This repository keeps model code and reproducible generation logic in Git while treating generated ML artifacts and derived vector stores as rebuildable state.
 
-A trained CNN checkpoint or an XGBoost model file is typically megabytes to hundreds of megabytes. Committing that directly to git bloats the repo permanently — git does not diff or garbage-collect binary blobs the way it does text, so the repo grows by the full file size on every retrain, forever. `.gitignore` in this repo already excludes `*.pt`, `*.pth`, `*.onnx`, `*.h5`, `*.pkl`, and `models/checkpoints/` for this reason.
+## What is committed
 
-## The fix: don't put them in git at all
+### Model code
 
-| Option | When to use it |
-|---|---|
-| **[DVC](https://dvc.org/)** (Data Version Control) | The standard fit here — versions large files and datasets alongside git commits, storing the actual bytes in S3/MinIO/GCS instead of the git object store. Pairs naturally with the MinIO instance this project already runs (`docker-compose.yml`). |
-| **Git LFS** | Simpler, more ubiquitous, GitHub-native. Less purpose-built for ML datasets than DVC, but lower setup cost if DVC feels like too much for a single model file. |
-| **MLflow Model Registry** | Already adopted for experiment tracking (see `docs/TECHNICAL-ARCHITECTURE.md` Section 4.4) — it can also serve as the artifact store for trained weights, which may be enough without adding DVC on top. Reasonable to start here and add DVC only if dataset versioning (not just model versioning) becomes a real need. |
+Committed:
 
-**Recommendation for this project's scale:** start with MLflow's own artifact store (already in the stack, zero new tooling). Add DVC only once there's a real, evolving dataset that itself needs versioning — not just the trained model output.
+- `models/disease/model.py`
+- `models/disease/inference.py`
+- `models/soil/train.py`
+- `models/soil/inference.py`
 
-## What actually goes in git
+### RAG code and corpus
 
-- Training *scripts* (`models/`) — yes, these are code, version them normally
-- Model *architecture* definitions — yes
-- Trained *weights* — no, per above
-- The advisory *corpus* (ICAR/state documents) — depends on size; a handful of PDFs can live in `models/corpus/` directly, a large corpus should follow the same DVC/external-storage pattern as model weights
+Committed:
+
+- `rag/corpus/*.md`
+- `rag/ingestion/ingest.py`
+- `rag/retrieval/retrieve.py`
+
+The current corpus contains three Markdown demo documents.
+
+## What is generated locally
+
+### Soil model artifact
+
+Running:
+
+```bash
+python models/soil/train.py
+```
+
+generates:
+
+```text
+models/soil/soil_model_synthetic.pkl
+```
+
+The artifact is excluded from version control.
+
+### ChromaDB vector store
+
+Running:
+
+```bash
+python rag/ingestion/ingest.py
+```
+
+creates a persistent ChromaDB store under:
+
+```text
+rag/vector_db/
+```
+
+This is derived from the Markdown corpus and should be rebuildable.
+
+## Disease model status
+
+The current disease inference path does not require a trained model artifact. The MobileNetV2 architecture exists as a structural definition, while the active inference implementation returns deterministic demo output.
+
+## Data provenance
+
+The repository does not currently contain a field-validated disease dataset or laboratory soil dataset.
+
+The soil labels are generated from heuristic rules over synthetic data.
+
+A service-level disease provenance field mentions PlantVillage, but the active inference path does not load a PlantVillage-trained checkpoint.
+
+## Versioning policy
+
+Do not commit large generated weights or vector stores merely to make a demo work. Keep:
+
+- training/inference code in Git;
+- corpus source documents in Git when small enough and legally appropriate;
+- generated model artifacts outside Git;
+- generated ChromaDB state outside Git.
+
+For a real training program, add a dedicated data/model versioning workflow only when the dataset and artifact lifecycle actually requires it.
