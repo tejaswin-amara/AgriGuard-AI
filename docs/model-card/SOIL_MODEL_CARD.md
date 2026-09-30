@@ -1,24 +1,58 @@
-# Model Card: Soil Health Advisory
+# Model Card — Soil Health Classifier
 
-**Status: Synthetic Data Trained**
+> **Status:** Synthetic-data prototype; not field validated.
 
-## Purpose
-To categorize soil health based on N, P, K, pH, and moisture readings.
+## Intended purpose
 
-## Architecture
-XGBoost Classifier (`models/soil/train.py`).
+Demonstrate a tabular ML pipeline that accepts soil measurements, produces a categorical result, and feeds that result into the RAG advisory layer.
 
-## Training Data
-**Synthetic Data**. Generated using basic heuristic rules (e.g., Optimal if pH is 6.0-7.5 and nutrients are high).
+## Current implementation
 
-## Evaluation & Metrics
-- The model learns the synthetic rules perfectly, but these metrics are **not real-world agricultural performance**.
+- Framework: XGBoost
+- Training script: `models/soil/train.py`
+- Features: N, P, K, pH, moisture
+- Synthetic samples generated: 1,000
+- Training seed: 42
+- Model file generated locally: `models/soil/soil_model_synthetic.pkl`
+- Inference version string: `xgboost-synthetic-v1`
 
-## Intended Use
-Demonstrating the tabular ML pipeline and integration with the RAG advisory layer.
+## Synthetic labels
 
-## Out-of-Scope Use
-Generating actual fertilizer prescriptions or agronomic advice.
+The training script derives the target using heuristic rules.
 
-## Responsible AI Considerations
-The model output is explicitly marked as `is_synthetic` in the API, and the UI displays a warning that the results are not field-validated.
+Current labels:
+
+1. `Optimal`
+2. `High Risk (pH imbalance)`
+3. `Suboptimal (Stress)`
+
+These labels are demonstrations of the software pipeline, not laboratory classifications.
+
+## Evaluation
+
+No field or laboratory benchmark is available.
+
+Model probabilities from XGBoost should not be presented as real-world confidence, agronomic certainty, or fertilizer-response probability.
+
+## Missing-artifact behavior
+
+If the generated model file is absent, the current inference implementation returns a deterministic fallback result. That fallback is part of the prototype behavior and is not a model prediction.
+
+## Intended use
+
+- demonstrating tabular classification;
+- exercising the soil API;
+- integrating model output with environmental context and RAG;
+- deterministic prototype demonstrations.
+
+## Out of scope
+
+- fertilizer dosage recommendations;
+- soil amendment prescriptions;
+- laboratory soil diagnosis;
+- agronomic certification;
+- yield prediction.
+
+## Production requirements
+
+A production model would require real soil/lab observations, documented measurement units and procedures, representative geography and crops, train/validation/test separation, leakage checks, calibrated evaluation, and domain review.
