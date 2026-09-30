@@ -1,20 +1,34 @@
-# 3. Risk Engine Semantics & Data Provenance Framework
+# ADR 0003 — Qualitative Risk Signals and Explicit Provenance
 
-* Status: Accepted
-* Date: 2026-09-26
+- **Status:** Accepted
+- **Date:** 2026-09-26
+- **Implementation:** `backend/app/services/risk_engine.py`
 
 ## Context
 
-Combining ML predictions with external meteorological parameters risks manufacturing false statistical probabilities if heuristic rules are conflated with validated probabilistic models.
+Combining model outputs and environmental values can create a misleading impression of statistical certainty. The prototype needs a clear distinction between measurements/models, heuristics, generated text, and data freshness.
 
 ## Decision
 
-We built `RiskEngine` (`backend/app/services/risk_engine.py`) to generate qualitative pressure levels (`low`, `moderate`, `elevated`, `severe`) and meteorological explanations (e.g., high relative humidity + recent rainfall) without outputting uncalibrated probability numbers.
+The risk engine emits qualitative signals, not calibrated probabilities.
 
-Furthermore, every response carries explicit `Provenance` metadata distinguishing data quality (`WEATHER_MODEL`, `HISTORICAL_CLIMATE`, `SENSOR_MEASUREMENT`, `ML_PREDICTION`, `LLM_OUTPUT`, `NEWS_SOURCE`) and freshness state (`FRESH`, `CACHED`, `STALE`, `UNAVAILABLE`).
+Current signal domains:
+
+| Signal | Current levels |
+|---|---|
+| Fungal pressure | `low`, `moderate`, `elevated` |
+| Water stress | `optimal`, `moderate`, `severe` |
+| Heat stress | `none`, `mild`, `high` |
+| Overall | `low`, `moderate`, `elevated` |
+
+Rules consider available humidity, temperature, precipitation, soil moisture, dry-spell duration, rainfall totals, ET₀, VPD, and climate context.
+
+External and generated data models carry provenance fields including provider identity, source URL where available, timestamps, data-quality class, freshness state, and attribution.
 
 ## Consequences
 
-* **Responsible AI Alignment**: Prevents misleading farmers with artificial certainty.
-* **Explainability**: Clear meteorological drivers accompany every risk level.
-* **Auditability**: Generated advisories record complete context, model versions, and source citations in the database.
+- Risk output is explicitly heuristic rather than a probability estimate.
+- Explanations expose the environmental drivers used by the current rules.
+- Freshness and provenance can be rendered by the frontend.
+- The implementation can still be wrong or incomplete; provenance does not establish correctness.
+- Thresholds are domain heuristics and have not been calibrated against field outcomes.
