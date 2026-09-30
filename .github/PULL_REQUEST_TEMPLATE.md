@@ -1,26 +1,35 @@
 ## Description
 
-[Provide a brief description of the changes.]
+<!-- What changed, and why? -->
 
 ## Type of Change
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
 - [ ] Documentation update
 - [ ] Refactor
+- [ ] Test/CI change
 
-## Testing
+## Verification
 
-- [ ] I have verified these changes locally.
-- [ ] I have added tests that prove my fix is effective or that my feature works.
-- [ ] New and existing unit tests pass locally with my changes.
+- [ ] I ran the relevant backend checks.
+- [ ] I ran the relevant frontend checks.
+- [ ] I tested affected user/API flows.
+- [ ] I updated documentation for behavior changes.
 
-## Security & Compliance
+## Prototype / Data Integrity
 
-- [ ] I have reviewed the code for potential security vulnerabilities.
-- [ ] No sensitive data or credentials have been committed.
+- [ ] No synthetic, mock, or fallback data is presented as real-world observation.
+- [ ] No model confidence is described as calibrated without evidence.
+- [ ] Any changed model/data limitation is reflected in the appropriate model or dataset card.
+
+## Security & Privacy
+
+- [ ] No secrets or credentials are committed.
+- [ ] Input validation and security implications were considered.
+- [ ] Any change involving farmer data is documented.
 
 ## Additional Notes
 
-[Any other relevant information, context, or links to related issues.]
+<!-- Screenshots, migration notes, known limitations, related issue/PR, etc. -->
