@@ -1,22 +1,65 @@
 # Security Policy
 
-## Supported Versions
+## Project status
 
-Pre-1.0 — only the `main` branch is supported. There are no tagged releases yet.
+AgriGuard AI is a public student/project prototype. There are no published production releases at the time of this policy revision.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-Please **do not** open a public issue for a security concern. Instead:
-- Use GitHub's private vulnerability reporting (Security tab → Report a vulnerability), or
-- Email tejaswinamara@klh.edu.in directly
+Do not open a public GitHub issue for a security-sensitive vulnerability.
 
-Please include what you found and where, steps to reproduce, and potential impact if known.
+Use GitHub's private vulnerability reporting when available, or contact the project maintainer through the private contact channel configured for the repository.
 
-## Response
+Include:
 
-This is a student project without a formal SLA, but reports will be acknowledged and addressed as promptly as possible.
+- affected file or endpoint;
+- reproduction steps;
+- expected and observed behavior;
+- potential impact;
+- any suggested mitigation.
 
-## Scope Notes
+Do not include real credentials in a report.
 
-- **Farmer data** — only crop images and soil readings are collected, no names, phone numbers, or precise location (see the Responsible AI section in [`README.md`](README.md#responsible-ai)). A report involving unintended collection or exposure of more than that is treated as high priority.
-- **Secrets** — API keys and database credentials are managed via Infisical, never committed; `gitleaks` runs in CI to catch accidental leaks. Full reasoning in [`docs/TECHNICAL-ARCHITECTURE.md`](docs/TECHNICAL-ARCHITECTURE.md).
+## Current security controls
+
+The repository currently includes:
+
+- image MIME-type validation;
+- 10 MB image-size validation;
+- explicit default CORS origins;
+- Pydantic input constraints;
+- Gitleaks pre-commit/CI scanning;
+- Trivy repository/image scanning;
+- Dependabot configuration;
+- provenance and limitation metadata;
+- prompt-boundary wording for retrieved RAG text.
+
+## Current security gaps
+
+The current application does **not** yet implement:
+
+- authentication or authorization;
+- rate limiting;
+- production secret-manager integration;
+- upload malware/content scanning;
+- comprehensive audit logging;
+- hardened production TLS/deployment configuration.
+
+The farm model currently stores resolved latitude/longitude because location is used to retrieve environmental context. Therefore documentation should not claim that the application collects “no precise GPS” data.
+
+Local Compose credentials are development defaults only and must not be reused in production.
+
+## Secret handling
+
+Use `.env` for local development and keep it untracked.
+
+Never commit:
+
+- IBM watsonx.ai API keys;
+- database passwords;
+- MinIO credentials;
+- private tokens;
+- credential-bearing logs.
+
+Gitleaks should be run before pushing changes.
+
