@@ -410,7 +410,7 @@ The following points are part of the **current repository implementation** and a
 3. **The soil model artifact is generated locally.** A fresh clone does not contain `soil_model_synthetic.pkl`.
 4. **The RAG corpus is a demo corpus.** It contains three local Markdown documents and is not a verified national agricultural advisory database.
 5. **Agricultural news is currently a curated static provider.** It is not a live news aggregation service.
-6. **Some provider failures have deterministic fallback behavior.** These fallbacks are for prototype resilience/testing and should not be interpreted as observations.
+6. **Some provider failures have deterministic fallback behavior.** Weather/climate farm-context paths can fall back to mock values, OpenAQ has deterministic fallback measurements, and farm creation currently falls back to fixed Nizamabad coordinates when geocoding fails. These values are for prototype resilience/testing and must not be interpreted as observations.
 7. **MinIO is provisioned but not fully wired into the current disease upload flow.** The API records an image path, while the submitted bytes are handled in-memory by the request path.
 8. **Alembic files exist, but application startup currently creates SQLModel tables directly.** Migrations are not the only database-initialization mechanism in the active code.
 9. **The frontend uses a relative `/api/v1` API base URL.** The repository does not currently include a Vite API proxy or an Nginx reverse-proxy configuration for forwarding those requests to port 8000, so the Dockerized frontend/backend split may require additional routing configuration for full end-to-end browser use.
