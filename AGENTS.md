@@ -1,37 +1,95 @@
 # AGENTS.md — AgriGuard AI
 
-Persistent project context for any AI coding agent working in this repo — IBM Bob, Claude Code, Codex, Cursor, or otherwise. This is the canonical file; agent-specific files (like `CLAUDE.md`) point here rather than duplicating it, so the two can't drift out of sync.
+> **Canonical agent context.** Keep this file synchronized with the actual repository. Do not describe planned architecture as implemented behavior.
 
-## What This Project Is
+## Project
 
-AI-powered crop disease and soil health advisory for smallholder Indian farmers, built for the 1M1B AI for Sustainability Virtual Internship (with IBM SkillsBuild and AICTE). Two models (image classifier + tabular soil-health model) feed a RAG-grounded advisory layer. Full reasoning: `docs/TECHNICAL-ARCHITECTURE.md`.
+AgriGuard AI is a full-stack agricultural decision-support prototype focused on farm context, soil analysis, crop-disease demonstration, environmental signals, and grounded advisory generation.
 
-## Current Status
+Primary repository: `tejaswin-amara/AgriGuard-AI`
 
-**Full Prototype Implemented and Tested** — FastAPI + SQLModel, React frontend, ML inference stubs and RAG. Verify it before trusting this file:
+## Current implementation
 
-```bash
-docker compose up --build
-```
-Or manually run the backend and frontend.
+### Frontend
 
-**Important**: The disease model is a PyTorch demo, the soil model is trained on synthetic data, and the RAG corpus uses demo documents. Don't reference a model prediction or corpus document as if it were field-tested.
+- React 19
+- TypeScript
+- Vite
+- React Router
+- Axios
+- Tailwind CSS
+- i18next / react-i18next
+- Biome
+- Playwright
 
-## Tech Stack Defaults for This Repo
+### Backend
 
-Full reasoning and every alternative considered: `docs/TECHNICAL-ARCHITECTURE.md`. The short version:
+- Python 3.12
+- FastAPI
+- Uvicorn
+- Pydantic / pydantic-settings
+- SQLModel
+- PostgreSQL
+- Alembic configuration and initial revision
 
-| Task | Choice | Why |
-|---|---|---|
-| Backend | `fastapi/full-stack-fastapi-template` conventions | Core workload is Python ML (CNN + XGBoost) |
-| Data layer | SQLModel + PostgreSQL | Bundled with the FastAPI template |
-| LLM / RAG provider | **IBM watsonx.ai + Granite models** (`ibm-watsonx-ai` SDK) | IBM SkillsBuild-partnered internship. Local demo fallback implemented. |
-| Frontend | React + Vite | Clean UI building. |
-| Object storage | MinIO | Stores submitted leaf images. |
+### ML / RAG
 
-## Non-Negotiables (Domain-Specific)
+- PyTorch / TorchVision MobileNetV2 structural disease model
+- deterministic disease demo inference
+- XGBoost synthetic soil classifier
+- ChromaDB
+- sentence-transformers `all-MiniLM-L6-v2`
+- IBM watsonx.ai / Granite optional provider
+- deterministic local advisory provider
 
-- **Never let the advisory layer state a recommendation that isn't grounded in a retrieved source passage.**
-- **Never add a new farmer data field without a stated reason it needs to exist.** Default to collecting less.
-- **Low-confidence or high-severity flags route to "consult an agronomist,"** not an auto-recommendation.
-- **Keep advisory copy in plain language.**
+### Infrastructure
+
+- Docker Compose
+- PostgreSQL 16
+- MinIO
+- GitHub Actions
+- Gitleaks
+- Trivy
+- Dependabot
+
+## Current truth about prototype status
+
+Do not call the project production-ready.
+
+- Disease inference does not load trained weights.
+- Disease output is deterministic demo behavior.
+- Soil labels come from synthetic heuristic data.
+- The RAG corpus contains three demo documents.
+- Agricultural news is a curated static provider.
+- Provider fallbacks can return deterministic synthetic values.
+- MinIO is provisioned, but the current disease path does not persist the uploaded bytes through MinIO.
+- Authentication/authorization is absent.
+- The frontend uses relative `/api/v1` requests while the shipped frontend Nginx container has no backend reverse-proxy rule.
+- Alembic exists, but current application startup calls SQLModel metadata table creation.
+- The latest inspected CI run has a frontend Biome failure.
+
+## Engineering rules
+
+1. Never present synthetic or fallback values as observations.
+2. Never present deterministic demo model outputs as validated predictions.
+3. Never claim a probability is calibrated without measurement.
+4. Never make an advisory recommendation without retrieved evidence.
+5. Keep provenance, freshness, and limitations visible.
+6. Minimize farmer data collection.
+7. Prefer plain-language advisory copy.
+8. Update documentation whenever code behavior changes.
+9. Prove verification claims with an actual test/check.
+10. Never commit secrets or generated large ML/vector artifacts.
+
+## Key documentation
+
+- `README.md`
+- `TECHNICAL-ARCHITECTURE.md`
+- `DATA_AND_MODELS.md`
+- `docs/dataset-card/`
+- `docs/model-card/`
+- `docs/architecture/`
+- `docs/runbooks/`
+- `docs/demo/DEMO.md`
+- `SECURITY.md`
+- `CHANGELOG.md`
